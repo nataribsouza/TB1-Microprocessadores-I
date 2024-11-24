@@ -17,9 +17,8 @@ abaixo.
 - O projeto deve possuir teclado alfanumérico matricial, LED indicativo de tanque cheio e display LCD 16x2.
 - O teclado alfanumérico possui 6 botões organizados em 3 colunas e 2 linhas.
 
-|     |     |     | 
-| --- | --- | --- |
 |  1  |  2  |  3  |
+| --- | --- | --- |
 |  4  |  5  |  #  |
 
 ***
