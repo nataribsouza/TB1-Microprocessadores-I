@@ -13,17 +13,15 @@
 #define UTILS_h
 
 /* Includes */
-#include <stdint.h>
 #include <avr/io.h>
-
-/* Defines */
-#define true 1
-#define false 0
+#include <stdint.h>
+#include <stdbool.h>
 
 /* Prototypes */
-void set_bit_reg(uint8_t *reg, uint8_t index);
-void clear_bit_reg(uint8_t *reg, uint8_t index);
-void set_reg(uint8_t *reg, uint8_t value);
-void clear_reg(uint8_t *reg);
+void set_bit_reg(volatile uint8_t *reg, uint8_t index);
+void clear_bit_reg(volatile uint8_t *reg, uint8_t index);
+bool get_bit_reg(volatile uint8_t *reg, uint8_t index);
+void set_reg(volatile uint8_t *reg, uint8_t value);
+void clear_reg(volatile uint8_t *reg);
 
 #endif /* UTILS_H */

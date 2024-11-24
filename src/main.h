@@ -17,6 +17,7 @@
 #include <avr/interrupt.h>
 #include "timers.h"
 #include "utils.h"
+#include "gpio.h"
 
 /* Defines */
 

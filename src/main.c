@@ -1,3 +1,4 @@
+/* Includes */
 #include "main.h"
 
 /* Variables */
@@ -9,10 +10,11 @@ int main(void) {
   timer_init();
 
   // IO's setup
-  init_pin();
+  init_pin(5, ENUM_PORT_PORTB, ENUM_PINMODE_OUTPUT);
 
   // Main loop
   while(true) {
-
+    set_pin(5, ENUM_PORT_PORTB, !read_pin(5, ENUM_PORT_PORTB));
+    delay(1000);
   }
 }
