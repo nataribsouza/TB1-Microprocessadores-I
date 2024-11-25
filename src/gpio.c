@@ -66,7 +66,7 @@ bool read_pin(uint8_t pin, en_port port_en) {
 
     port_mask(port_en, &DDRX, &PORTX, &PINX);
 
-    return get_bit_reg(PINX, pin);
+    return read_bit_reg(PINX, pin);
 }
 
 /**

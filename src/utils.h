@@ -20,7 +20,7 @@
 /* Prototypes */
 void set_bit_reg(volatile uint8_t *reg, uint8_t index);
 void clear_bit_reg(volatile uint8_t *reg, uint8_t index);
-bool get_bit_reg(volatile uint8_t *reg, uint8_t index);
+bool read_bit_reg(volatile uint8_t *reg, uint8_t index);
 void set_reg(volatile uint8_t *reg, uint8_t value);
 void clear_reg(volatile uint8_t *reg);
 

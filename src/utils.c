@@ -31,7 +31,7 @@ void clear_bit_reg(volatile uint8_t *reg, uint8_t index) {
  * @return true 
  * @return false 
  */
-bool get_bit_reg(volatile uint8_t *reg, uint8_t index) {
+bool read_bit_reg(volatile uint8_t *reg, uint8_t index) {
     return (*reg & (1 << index));
 }
 

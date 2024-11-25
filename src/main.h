@@ -18,8 +18,6 @@
 #include "timers.h"
 #include "utils.h"
 #include "gpio.h"
-
-/* Defines */
-
+#include "serial.h"
 
 #endif /* MAIN_H */
