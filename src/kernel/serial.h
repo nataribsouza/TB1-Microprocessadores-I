@@ -13,7 +13,7 @@
 #define SERIAL_H
 
 /* Includes */
-#include "utils.h"
+#include "../utils.h"
 
 /* Defines */
 #define SERIAL_BAUDRATE 19200
@@ -22,6 +22,7 @@
 /* Prototypes */
 void serial_begin(void);
 void serial_write(uint8_t data);
+void serial_print(uint8_t *data, uint8_t length);
 bool serial_available(void);
 uint8_t serial_read(void);
 

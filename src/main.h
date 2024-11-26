@@ -15,9 +15,9 @@
 /* Includes */
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "timers.h"
+#include "kernel/timers.h"
+#include "kernel/gpio.h"
+#include "kernel/serial.h"
 #include "utils.h"
-#include "gpio.h"
-#include "serial.h"
 
 #endif /* MAIN_H */

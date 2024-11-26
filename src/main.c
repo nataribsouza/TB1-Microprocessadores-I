@@ -16,6 +16,8 @@ int main(void) {
   // IO's setup
   init_pin(5, ENUM_PORT_PORTB, ENUM_PINMODE_OUTPUT);
 
+  serial_print("Hello world!", sizeof("Hello world!")/sizeof(char)-1);
+
   /* Main loop */
   while(true) {
     if(serial_available()) {
