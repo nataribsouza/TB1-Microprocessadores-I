@@ -37,6 +37,12 @@ typedef enum {
 } en_button;
 
 /* Structures */
+
+/**
+ * @brief Hold all needed variables
+ * for button control
+ * 
+ */
 typedef struct {
     bool value;
     bool old_value;

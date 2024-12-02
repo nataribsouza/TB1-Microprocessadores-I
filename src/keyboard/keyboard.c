@@ -32,6 +32,11 @@ void init_keyboard(void) {
     set_pin(KEYBOARD_PIN_ROW_2, ENUM_PORT_PORTD, true);
 }
 
+/**
+ * @brief Handle keyboard, reading 
+ * all buttons with pooling
+ * 
+ */
 void handle_keyboard(void) {
     for(int i = 0; i < KEYBOARD_NUM_BUTTONS; i++) {
         st_button *button = &keyboard[i];
@@ -66,6 +71,14 @@ void handle_keyboard(void) {
     }
 }
 
+/**
+ * @brief Return true one single
+ * time if the button was pressed
+ * 
+ * @param button 
+ * @return true 
+ * @return false 
+ */
 bool read_keyboard(uint8_t button) {
     bool pressed = keyboard[button].pressed;
     bool executed = keyboard[button].executed;
