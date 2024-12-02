@@ -15,9 +15,11 @@
 /* Includes */
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <string.h>
 #include "kernel/timers.h"
 #include "kernel/gpio.h"
 #include "kernel/serial.h"
+#include "keyboard/keyboard.h"
 #include "utils.h"
 
 #endif /* MAIN_H */

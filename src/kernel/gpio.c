@@ -29,7 +29,7 @@ void init_pin(uint8_t pin, en_port port_en, en_pinMode mode_en) {
 
         case ENUM_PINMODE_INPUTPULLUP:
             clear_bit_reg(DDRX, pin);
-            set_bit_reg(PINX, pin);
+            set_bit_reg(PORTX, pin);
             break;
     }
 }

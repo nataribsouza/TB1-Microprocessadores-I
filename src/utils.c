@@ -20,7 +20,7 @@ void set_bit_reg(volatile uint8_t *reg, uint8_t index){
  * @param index 
  */
 void clear_bit_reg(volatile uint8_t *reg, uint8_t index) {
-    *reg &= !(1 << index);
+    *reg &= ~(1 << index);
 }
 
 /**
