@@ -26,6 +26,30 @@ void timer_init(void) {
 }
 
 /**
+ * @brief Wait for us microseconds
+ * 
+ * @param us 
+ */
+void delay_us(uint16_t us) {
+    // Set normal mode
+    clear_reg(&TCCR1A);
+
+    // Reset timer counter
+    clear_reg(&TCNT1);
+
+    // Set 8-bit prescaler and start timer (f = 2 MHz timer, T = 0.5 us)
+    set_bit_reg(&TCCR1B, CS11);
+
+    // Calculate number of cicles until reach us delay
+    uint16_t ciclos = us * 2;
+
+    while (TCNT1 < ciclos);
+
+    // Stop timer
+    clear_reg(&TCCR1B);
+}
+
+/**
  * @brief Delay ms milliseconds
  * 
  * @param ms 

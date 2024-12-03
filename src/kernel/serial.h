@@ -22,7 +22,7 @@
 /* Prototypes */
 void serial_begin(void);
 void serial_write(uint8_t data);
-void serial_print(uint8_t *data, uint8_t length);
+void serial_print(const char *str);
 bool serial_available(void);
 uint8_t serial_read(void);
 

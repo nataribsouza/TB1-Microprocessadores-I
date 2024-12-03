@@ -63,8 +63,8 @@ void serial_write(uint8_t data) {
  * @param data 
  * @param length 
  */
-void serial_print(uint8_t *data, uint8_t length) {
-    for(int i = 0; i < length; i++) {
-        serial_write(data[i]);
+void serial_print(const char *str) {
+    while(*str) {
+        serial_write(*str++);
     }
 }

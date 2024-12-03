@@ -13,25 +13,33 @@
 #define DISPLAY_H
 
 /* Include */
-#include "../utils.h"
-#include "../kernel/timers.h"
+#include "i2c.h"
 
 /* Defines */
-#define I2C_BAUDRATE 100000
-#define I2C_REGISTER_TWBR (F_CPU / (16 + 2*I2C_BAUDRATE))
-#define SLA_LCD 0x27 
+#define LCD_I2C_ADDRESS 0x27 
+#define LCD_NIBBLE_SHIFT 4
+#define LCD_BIT_EN (0x04)
+#define LCD_BIT_BACKLIGHT (0x08)
+#define LCD_BIT_RS_SEND_DATA (0b01)
+#define LCD_BIT_RS_SEND_COMMAND (0b00)
+#define LCD_ADDR_ROW0 0x00
+#define LCD_ADDR_ROW1 0x40
+#define LCD_CMD_CLEAR 0x01
+#define LCD_CMD_SET_MODE 0x02
+#define LCD_CMD_SET_SIZE 0x28
+#define LCD_CMD_SET_CURSOR 0x80
+#define LCD_CMD_SET_CURSOR_MODE 0x0C
+#define LCD_CMD_SET_CURSOR_INCREMENT 0x06
 
 /* Prototypes */
-void TWI_init(void);
-void TWI_start(void);
-void TWI_write(uint8_t data);
-void TWI_stop(void);
-void LCD_sendNibble(uint8_t nibble, uint8_t control);
-void LCD_sendByte(uint8_t byte, uint8_t control);
-void LCD_command(uint8_t command);
-void LCD_data(uint8_t data);
-void LCD_init(void);
-void LCD_setCursor(uint8_t row, uint8_t col);
-void LCD_print(const char *str);
+void init_display(void);
+void display_nibble(uint8_t, uint8_t control);
+void display_nibble_data(uint8_t nibble);
+void display_nibble_command(uint8_t nibble);
+void display_data(uint8_t data);
+void display_command(uint8_t data);
+void display_setCursor(uint8_t row, uint8_t col);
+void display_print(const char *str);
+void display_clear(void);
 
-#endif /* DISPLAY_H*/
+#endif /* DISPLAY_H */

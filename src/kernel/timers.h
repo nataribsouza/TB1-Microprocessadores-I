@@ -23,6 +23,7 @@
 /* Prototypes */
 void timer_init(void);
 void delay(uint16_t ms);
+void delay(uint16_t us);
 uint32_t millis(void);
 
 #endif /* TIMERS_H */

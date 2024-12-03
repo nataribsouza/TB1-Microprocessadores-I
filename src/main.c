@@ -15,15 +15,15 @@ int main(void) {
   init_keyboard();
 
 
-  serial_print("Hello world!\n", strlen("Hello world!\n"));
+  serial_print("Hello world!\n");
 
-  TWI_init();  // Inicializa o I2C
-  LCD_init();  // Inicializa o LCD
+  init_i2c();  // Inicializa o I2C
+  init_display();  // Inicializa o LCD
 
-  LCD_setCursor(0, 0);    // Cursor na linha 0, coluna 0
-  LCD_print("Hello, Natan!");  // Exibe mensagem
-  LCD_setCursor(1, 0);    // Cursor na linha 1, coluna 0
-  LCD_print("I2C LCD Demo!");
+  display_setCursor(0, 0);    // Cursor na linha 0, coluna 0
+  display_print("Hello, Natan!");  // Exibe mensagem
+  display_setCursor(1, 0);    // Cursor na linha 1, coluna 0
+  display_print("I2C LCD Demo!");
 
   /* Main loop */
   while(true) {
@@ -36,7 +36,7 @@ int main(void) {
 
         sprintf(buffer, "Botao pressionado: %d\n", i+1);
 
-        serial_print(buffer, strlen(buffer)); 
+        serial_print(buffer); 
       }
     }
 
