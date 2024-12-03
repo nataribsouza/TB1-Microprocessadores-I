@@ -56,7 +56,7 @@ Os comandos abaixo configuram e controlam o funcionamento do display LCD.
 
 ## Inicialização do Display (Modo 4 Bits)
 1. Aguarde 15 ms após a alimentação do display.
-2. Envie o comando `0x30` (3 vezes) com intervalos de 4.1 ms.
+2. Envie o comando `0x30`  com intervalos de 4.1 ms.
 3. Envie o comando `0x20` para configurar o modo 4 bits.
 4. Configure a função com `0x28`.
 5. Ligue o display com `0x0C`.
@@ -68,3 +68,19 @@ Os comandos abaixo configuram e controlam o funcionamento do display LCD.
 ## Como Enviar Dados e Comandos
 - **Dados**: RS = 1, RW = 0, enviar o byte correspondente.
 - **Comandos**: RS = 0, RW = 0, enviar o byte correspondente.
+
+---
+
+## Estrutura do Byte PCF8574
+Cada bit do byte enviado ao PCF8574 corresponde a um pino físico conectado ao display LCD. A tabela abaixo detalha o mapeamento padrão:
+
+| **Bit** | **Pino no PCF8574** | **Função no LCD**         | **Descrição**                                                  |
+| ------- | ------------------- | ------------------------- | -------------------------------------------------------------- |
+| 7       | P3                  | **D7**                    | Bit 7 do barramento de dados do LCD.                           |
+| 6       | P2                  | **D6**                    | Bit 6 do barramento de dados do LCD.                           |
+| 5       | P1                  | **D5**                    | Bit 5 do barramento de dados do LCD.                           |
+| 4       | P0                  | **D4**                    | Bit 4 do barramento de dados do LCD.                           |
+| 3       | P7                  | **Backlight**             | Controla a luz de fundo do display. `1` ativa; `0` desativa.   |
+| 2       | P6                  | **Enable (E)**            | Ativa a leitura/escrita no LCD. `1` ativa; `0` desativa.       |
+| 1       | P5                  | **Read/Write (RW)**       | Define o modo de operação: `0` para escrita; `1` para leitura. |
+| 0       | P4                  | **Register Select (RS)**  | Define o tipo de dado: `0` para comandos; `1` para dados.      |
