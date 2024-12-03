@@ -17,6 +17,14 @@ int main(void) {
 
   serial_print("Hello world!\n", strlen("Hello world!\n"));
 
+  TWI_init();  // Inicializa o I2C
+  LCD_init();  // Inicializa o LCD
+
+  LCD_setCursor(0, 0);    // Cursor na linha 0, coluna 0
+  LCD_print("Hello, Natan!");  // Exibe mensagem
+  LCD_setCursor(1, 0);    // Cursor na linha 1, coluna 0
+  LCD_print("I2C LCD Demo!");
+
   /* Main loop */
   while(true) {
     // Continuous read keyboard

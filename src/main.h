@@ -19,6 +19,7 @@
 #include "kernel/timers.h"
 #include "kernel/gpio.h"
 #include "kernel/serial.h"
+#include "display/display.h"
 #include "keyboard/keyboard.h"
 #include "utils.h"
 
