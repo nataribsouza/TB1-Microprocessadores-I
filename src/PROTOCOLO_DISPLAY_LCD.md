@@ -26,7 +26,7 @@ Este documento descreve os comandos básicos e como configurá-lo em modo 4 bits
 | 6    | E           | Habilitação do Display             |
 | 7-14 | D0-D7       | Barramento de Dados                |
 | 15   | A (LED+)    | Alimentação do Backlight           |
-| 16   | K (LED-)    | Terra do Backlight                 V|
+| 16   | K (LED-)    | Terra do Backlight                 |
 
 ---
 
