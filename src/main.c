@@ -14,11 +14,11 @@ int main(void) {
   // Keyboard setup
   init_keyboard();
 
+  // I2C setup
+  init_i2c();
 
-  serial_print("Hello world!\n");
-
-  init_i2c();  // Inicializa o I2C
-  init_display();  // Inicializa o LCD
+  // Init LCD display
+  init_display();
 
   display_setCursor(0, 0);    // Cursor na linha 0, coluna 0
   display_print("Hello, Natan!");  // Exibe mensagem
