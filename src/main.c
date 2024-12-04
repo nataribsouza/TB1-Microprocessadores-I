@@ -44,11 +44,20 @@ int main(void) {
     }
 
     // Toggle blink
-    if(blink) {
-      blink_led();
-    } else {
-      set_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC, false);
+    // if(blink) {
+    //   blink_led();
+    // } else {
+    //   set_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC, false);
+    // }
+
+    for(int i = 0; i < KEYBOARD_NUM_BUTTONS; i++) {
+      if(read_keyboard(i)) {
+        char buffer[8];
+        sprintf(buffer, "%d\n", i+1);
+        serial_print(buffer);
+      }      
     }
+
   }
 }
 

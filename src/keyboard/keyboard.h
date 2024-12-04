@@ -18,13 +18,15 @@
 #include "../kernel/timers.h"
 
 /* Defines */
-#define KEYBOARD_NUM_BUTTONS 6
+#define KEYBOARD_NUM_BUTTONS 12
 #define KEYBOARD_PRESSING_TIME_MS 200
-#define KEYBOARD_PIN_ROW_1 2
-#define KEYBOARD_PIN_ROW_2 3
-#define KEYBOARD_PIN_COLLUM_1 4
-#define KEYBOARD_PIN_COLLUM_2 5
-#define KEYBOARD_PIN_COLLUM_3 6
+#define KEYBOARD_PIN_ROW_0 2
+#define KEYBOARD_PIN_ROW_1 3
+#define KEYBOARD_PIN_ROW_2 4
+#define KEYBOARD_PIN_ROW_3 5
+#define KEYBOARD_PIN_COLLUM_0 6
+#define KEYBOARD_PIN_COLLUM_1 7
+#define KEYBOARD_PIN_COLLUM_2 0
 
 /* Enums */
 typedef enum {
@@ -33,7 +35,13 @@ typedef enum {
     ENUM_BUTTON_3,
     ENUM_BUTTON_4,
     ENUM_BUTTON_5,
-    ENUM_BUTTON_6
+    ENUM_BUTTON_6,
+    ENUM_BUTTON_7,
+    ENUM_BUTTON_8,
+    ENUM_BUTTON_9,
+    ENUM_BUTTON_STAR,
+    ENUM_BUTTON_0,
+    ENUM_BUTTON_HASHTAG
 } en_button;
 
 /* Structures */
@@ -48,8 +56,9 @@ typedef struct {
     bool old_value;
     bool pressed;
     bool executed;
-    uint8_t pin;
     uint32_t timer;
+    uint8_t pin;
+    en_port port;
 } st_button;
 
 /* Prototypes */
