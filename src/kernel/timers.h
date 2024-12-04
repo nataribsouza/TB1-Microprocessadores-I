@@ -14,7 +14,7 @@
 
 /* Includes */
 #include <avr/interrupt.h>
-#include "../utils.h"
+#include "regLib.h"
 
 /* Defines */
 #define TIMER0_PRESCALER 64 

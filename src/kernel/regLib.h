@@ -1,16 +1,16 @@
 /**
- * @file utils.h
+ * @file regLib.h
  * @author your name (you@domain.com)
- * @brief Utils functions and others 
+ * @brief 
  * @version 0.1
- * @date 2024-11-22
+ * @date 2024-12-03
  * 
  * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef UTILS_H
-#define UTILS_h
+#ifndef REGLIB_H
+#define REGLIB_H
 
 /* Includes */
 #include <avr/io.h>
@@ -24,4 +24,4 @@ bool read_bit_reg(volatile uint8_t *reg, uint8_t index);
 void set_reg(volatile uint8_t *reg, uint8_t value);
 void clear_reg(volatile uint8_t *reg);
 
-#endif /* UTILS_H */
+#endif /* REGLIB_H */

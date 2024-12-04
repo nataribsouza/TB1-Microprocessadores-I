@@ -21,7 +21,6 @@
 #include "kernel/serial.h"
 #include "display/display.h"
 #include "keyboard/keyboard.h"
-#include "utils.h"
 
 /* Defines */
 #define ROBOT_TIME_BLINK_LED_MS 500

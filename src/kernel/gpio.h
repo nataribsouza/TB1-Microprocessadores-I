@@ -14,7 +14,7 @@
 
 /* Includes */
 #include <stdbool.h>
-#include "../utils.h"
+#include "regLib.h"
 
 /* Defines */
 

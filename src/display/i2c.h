@@ -13,7 +13,7 @@
 #define I2C_H
 
 /* Includes */
-#include "../utils.h"
+#include "../kernel/regLib.h"
 #include "../kernel/timers.h"
 
 /* Defines */

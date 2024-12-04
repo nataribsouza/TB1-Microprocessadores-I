@@ -13,7 +13,7 @@
 #define SERIAL_H
 
 /* Includes */
-#include "../utils.h"
+#include "regLib.h"
 
 /* Defines */
 #define SERIAL_BAUDRATE 19200

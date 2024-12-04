@@ -13,7 +13,7 @@
 #define KEYBOARD_H
 
 /* Includes */
-#include "../utils.h"
+#include "../kernel/regLib.h"
 #include "../kernel/gpio.h"
 #include "../kernel/timers.h"
 
