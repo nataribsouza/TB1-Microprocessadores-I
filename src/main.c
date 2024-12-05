@@ -29,10 +29,14 @@ int main(void) {
   // Init pin led
   init_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC, ENUM_PINMODE_OUTPUT);
 
-  display_setCursor(0, 0);    // Cursor na linha 0, coluna 0
-  display_print("Hello, Natan!");  // Exibe mensagem
-  display_setCursor(1, 0);    // Cursor na linha 1, coluna 0
-  display_print("I2C LCD Demo!");
+  // Show start message
+  display_setCursor(0, 0);
+  display_clear();
+  display_print(LCD_SCREEN_START);
+
+
+  // Delay show start message
+  delay(LCD_DELAY_SHOW_START_SCREE);
 
   /* Main loop */
   while(true) {

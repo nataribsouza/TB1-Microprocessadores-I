@@ -16,6 +16,8 @@
 #include "i2c.h"
 
 /* Defines */
+#define LCD_DISPLAY_NUM_COL 16
+#define LCD_DISPLAY_NUM_ROW 2
 #define LCD_I2C_ADDRESS 0x27 
 #define LCD_NIBBLE_SHIFT 4
 #define LCD_BIT_EN (0x04)
@@ -30,6 +32,16 @@
 #define LCD_CMD_SET_CURSOR 0x80
 #define LCD_CMD_SET_CURSOR_MODE 0x0C
 #define LCD_CMD_SET_CURSOR_INCREMENT 0x06
+#define LCD_DELAY_SHOW_START_SCREE 5000
+#define LCD_SCREEN_START "   AspiranTec   "
+
+/* Structures */
+typedef struct {
+    bool update;
+    char row1[LCD_DISPLAY_NUM_COL+1]; 
+    char row2[LCD_DISPLAY_NUM_COL+1]; 
+}st_display;
+
 
 /* Prototypes */
 void init_display(void);
