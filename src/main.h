@@ -16,14 +16,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <string.h>
+#include "robot.h"
 #include "kernel/timers.h"
 #include "kernel/gpio.h"
 #include "kernel/serial.h"
 #include "display/display.h"
 #include "keyboard/keyboard.h"
-
-/* Defines */
-#define ROBOT_TIME_BLINK_LED_MS 500
-#define ROBOT_PIN_LED 1
 
 #endif /* MAIN_H */

@@ -34,6 +34,7 @@
 #define LCD_CMD_SET_CURSOR_INCREMENT 0x06
 #define LCD_DELAY_SHOW_START_SCREE 5000
 #define LCD_SCREEN_START "   AspiranTec   "
+#define LCD_SCREEN_LOGIN "SENHA: %4d"
 
 /* Structures */
 typedef struct {
