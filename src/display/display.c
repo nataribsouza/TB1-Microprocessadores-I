@@ -133,3 +133,20 @@ void display_clear(void) {
     display_command(LCD_CMD_CLEAR);
     delay(2);
 }
+
+void display_set_line(st_display *display_st, const char *str, uint8_t row) {
+    switch (row){
+    case LCD_ADDR_ROW0:
+        strcpy(display_st->row0, str);
+        break;
+
+    case LCD_ADDR_ROW1:
+        strcpy(display_st->row1, str);
+        break;
+
+    default:
+        break;
+    }
+
+    display_st->update = true;    
+}

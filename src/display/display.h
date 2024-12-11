@@ -36,11 +36,23 @@
 #define LCD_SCREEN_START "   AspiranTec   "
 #define LCD_SCREEN_LOGIN "SENHA: %4d"
 
+/* Enums */
+typedef enum {
+    ENUM_SCREEN_INIT,
+    ENUM_SCREEN_MAIN,
+    ENUM_SCREEN_USER_COM,
+    ENUM_SCREEN_USER_ADM_SELECT_ACTION,
+    ENUM_SCREEN_USER_ADM_CHANGE_OUR,
+    ENUM_SCREEN_USER_ADM_ADD_BLOCKED_AREA,
+    ENUM_SCREEN_USER_ADM_START_ROUTINE
+}en_screen;
+
 /* Structures */
 typedef struct {
     bool update;
+    char row0[LCD_DISPLAY_NUM_COL+1]; 
     char row1[LCD_DISPLAY_NUM_COL+1]; 
-    char row2[LCD_DISPLAY_NUM_COL+1]; 
+    en_screen screen_en;
 }st_display;
 
 
@@ -54,5 +66,6 @@ void display_command(uint8_t data);
 void display_setCursor(uint8_t row, uint8_t col);
 void display_print(const char *str);
 void display_clear(void);
+void display_set_line(st_display *display_st, const char *str, uint8_t row);
 
 #endif /* DISPLAY_H */

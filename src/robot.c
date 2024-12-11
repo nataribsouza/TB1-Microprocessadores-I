@@ -8,6 +8,9 @@ void init_robot(st_robot *robot_st) {
     set_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC,false);
 
     // Set robot structure
+    robot_st->display_st.update = false;
+    strcpy(robot_st->display_st.row1, "");
+    strcpy(robot_st->display_st.row2, "");
     robot_st->vacuum = false;
     robot_st->state_en = ENUM_STATE_INIT;
     robot_st->battery = ROBOT_BATTERY_CAPACITY_MA_S;
@@ -31,13 +34,7 @@ void robot_state_machine(st_robot *robot_st) {
 
         case ENUM_STATE_UPDATE_DISPLAY:
             // Check if there are changes in display message
-            if(robot_st->display_st.update = true) {
-                display_clear();
-                display_setCursor(0, 0);
-                display_print(robot_st->display_st.row1);
-                display_setCursor(1, 0);
-                display_print(robot_st->display_st.row2);
-            }
+            robot_update_display(robot_st);
             robot_st->state_en = ENUM_STATE_BLINK_LED;
             break;
 
@@ -52,15 +49,36 @@ void robot_state_machine(st_robot *robot_st) {
             break;
 
         case ENUM_STATE_CHECK_SERIAL:
+            robot_st->state_en = ENUM_STATE_MOVE;
             break;
 
         case ENUM_STATE_MOVE:
+            robot_st->state_en = ENUM_STATE_INIT;
             break;
         
         default:
             robot_st->state_en = ENUM_STATE_INIT;
             break;
     }
+}
+
+void update_display(st_display *display_st) {
+    unsigned long time = millis();
+    static unsigned long timer = 0;
+
+    // Update display at 1 FPS rate
+    if(time - time >= ROBOT_TIME_UPDATE_DISPLAY_MS) {
+        timer = time;
+
+        if(display_st->update == true) {
+            display_st->update = false;
+            display_clear();
+            display_setCursor(0, 0);
+            display_print(display_st->row0);
+            display_setCursor(1, 0);
+            display_print(display_st->row0);
+        }
+    }    
 }
 
 void blink_led(void) {

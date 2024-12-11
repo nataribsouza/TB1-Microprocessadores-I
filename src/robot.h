@@ -13,6 +13,7 @@
 #define ROBOT_H
 
 /* Includes */
+#include <string.h>
 #include "kernel/regLib.h"
 #include "kernel/gpio.h"
 #include "kernel/timers.h"
@@ -21,6 +22,8 @@
 #include "keyboard/keyboard.h"
 
 /* Defines */
+#define ROBOT_USER_PASSWORD_ADM 
+#define ROBOT_USER_PASSWORD_COM 
 #define ROBOT_PIN_LED 1
 #define ROBOT_TIME_BLINK_LED_MS 500
 #define ROBOT_NUM_BLOCKED_AREAS 2
@@ -31,6 +34,7 @@
 #define ROBOT_DFL_WAKEUP_TIME_MIN 0
 #define ROBOT_BLOCKED_ARAE_0 0
 #define ROBOT_BLOCKED_ARAE_1 1
+#define ROBOT_TIME_UPDATE_DISPLAY_MS 1000
 
 /* Enums */
 typedef enum {
@@ -73,6 +77,7 @@ typedef struct {
 
 /* Prototypes */
 void blink_led(void);
+void update_display(st_display *display_st);
 void init_robot(st_robot *robot_st);
 void robot_state_machine(st_robot *robot_st);
 void robot_clean_edges(st_robot *robot_st);
