@@ -24,6 +24,9 @@
 #define LCD_BIT_BACKLIGHT (0x08)
 #define LCD_BIT_RS_SEND_DATA (0b01)
 #define LCD_BIT_RS_SEND_COMMAND (0b00)
+#define LCD_ROW0 0
+#define LCD_ROW1 1
+#define LCD_BUFFER_LEN 17
 #define LCD_ADDR_ROW0 0x00
 #define LCD_ADDR_ROW1 0x40
 #define LCD_CMD_CLEAR 0x01
@@ -33,18 +36,39 @@
 #define LCD_CMD_SET_CURSOR_MODE 0x0C
 #define LCD_CMD_SET_CURSOR_INCREMENT 0x06
 #define LCD_DELAY_SHOW_START_SCREE 5000
+#define LCD_PARAMETER_4_CHAR_FIRST_POS 3
+#define LCD_PARAMETER_2_CHAR_FIRST_POS 1
+#define ASCII_NUM_0
+#define ASCII_NUM_9
+
+// Screen messages
 #define LCD_SCREEN_START "   AspiranTec   "
-#define LCD_SCREEN_LOGIN "SENHA: %4d"
+#define LCD_SCREEN_LOGIN_R0W0 "SENHA: %4s"
+#define LCD_SCREEN_LOGIN_R0W1 "[#] Enter"
+#define LCD_SCREEN_MAIN_MENU_USER_ADM_ROW0 "[1]Nor   [2]Cant"
+#define LCD_SCREEN_MAIN_MENU_USER_ADM_ROW1 "[3]Blk   [4]Hora"
+#define LCD_SCREEN_SLCT_BLOCK_AREA_USER_ADM_ROW0 "Selecione a area"
+#define LCD_SCREEN_SLCT_BLOCK_AREA_USER_ADM_ROW1 "[1] 1      [2] 2"
+#define LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0 "Comp da area"
+#define LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1 "%4s   [#] Enter"
+#define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW0 "Larg da area"
+#define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1 "%4s   [#] Enter"
+#define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0 "Cent da area"
+#define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1 "%4s   [#] Enter"
+#define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW0 "Hora limp normal"
+#define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1 "%2s:%2s  [#] Enter"
+#define LCD_SCREEN_MAIN_MENU_USER_COM_ROW0 "[1]Nor   [2]Cant"
+#define LCD_SCREEN_MAIN_MENU_USER_COM_ROW1 ""
 
 /* Enums */
 typedef enum {
-    ENUM_SCREEN_INIT,
-    ENUM_SCREEN_MAIN,
-    ENUM_SCREEN_USER_COM,
-    ENUM_SCREEN_USER_ADM_SELECT_ACTION,
-    ENUM_SCREEN_USER_ADM_CHANGE_OUR,
-    ENUM_SCREEN_USER_ADM_ADD_BLOCKED_AREA,
-    ENUM_SCREEN_USER_ADM_START_ROUTINE
+    ENUM_SCREEN_LOGIN,
+    ENUM_SCREEN_MAIN_MENU_USER_ADM,
+    ENUM_SCREEN_SLCT_LEN_USER_ADM,
+    ENUM_SCREEN_SLCT_HGT_USER_ADM,
+    ENUM_SCREEN_SLCT_CNT_USER_ADM,
+    ENUM_SCREEN_CHNG_HOUR_USER_ADM,
+    ENUM_SCREEN_MAIN_MENU_USER_COM
 }en_screen;
 
 /* Structures */
@@ -66,6 +90,6 @@ void display_command(uint8_t data);
 void display_setCursor(uint8_t row, uint8_t col);
 void display_print(const char *str);
 void display_clear(void);
-void display_set_line(st_display *display_st, const char *str, uint8_t row);
+void display_set_line(st_display *display_st, uint8_t row,  const char *str);
 
 #endif /* DISPLAY_H */

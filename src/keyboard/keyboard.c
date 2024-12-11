@@ -61,7 +61,7 @@ void init_keyboard(void) {
  * all buttons with pooling
  * 
  */
-void handle_keyboard(void) {
+void run_keyboard(void) {
     for(int i = 0; i < KEYBOARD_NUM_BUTTONS; i++) {
         st_button *button = &keyboard[i];
 

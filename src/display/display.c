@@ -134,7 +134,7 @@ void display_clear(void) {
     delay(2);
 }
 
-void display_set_line(st_display *display_st, const char *str, uint8_t row) {
+void display_set_line(st_display *display_st,  uint8_t row, const char *str) {
     switch (row){
     case LCD_ADDR_ROW0:
         strcpy(display_st->row0, str);

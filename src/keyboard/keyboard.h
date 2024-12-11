@@ -63,7 +63,7 @@ typedef struct {
 
 /* Prototypes */
 void init_keyboard(void);
-void handle_keyboard(void);
+void run_keyboard(void);
 bool read_keyboard(uint8_t button);
 
 #endif /* Keyboard */
