@@ -26,13 +26,19 @@
 #include "keyboard/keyboard.h"
 
 /* Defines */
+#define CONVERT_TO_PERCENTAGE 100
 #define DEC_BASE 10
+#define ROOM_LENGTH 10
+#define ROOM_HEIGHT 8
+#define MAX_HOUR 23
+#define MAX_MINUTE 59
 #define ROBOT_USER_PASSWORD_ADM "1325"
 #define ROBOT_USER_PASSWORD_COM "4213"
 #define ROBOT_PIN_LED 1
 #define ROBOT_TIME_BLINK_LED_MS 500
 #define ROBOT_NUM_BLOCKED_AREAS 2
 #define ROBOT_BATTERY_CAPACITY_MA_S 36000
+#define ROBOT_BATTERY_CRITICAL_PERCENTAGE 10
 #define ROBOT_BATTERY_CONSUMPTION_STD_MA_S 30
 #define ROBOT_BATTERY_CONSUMPTION_VACUUM_MA_S 180
 #define ROBOT_DFL_WAKEUP_TIME_H 9
@@ -65,8 +71,8 @@ typedef struct {
 
 typedef struct {
     bool valid;
-    uint8_t x;
-    uint8_t y;
+    uint8_t length;
+    uint8_t height;
     uint8_t center;
 } st_blocked_area;
 
@@ -98,5 +104,6 @@ void robot_turn_left(st_robot *robot_st);
 void robot_goback_base(st_robot *robot_st);
 bool robot_check_obstacle(st_robot *robot_st);
 char identify_button(uint8_t bt);
+uint8_t calculate_battery_level(uint16_t battery);
 
 #endif /* ROBOT_H */

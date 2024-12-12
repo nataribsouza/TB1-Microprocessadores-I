@@ -2,6 +2,12 @@
 #include "robot.h"
 
 /* Functions */
+
+/**
+ * @brief Init robot variables
+ * 
+ * @param robot_st 
+ */
 void init_robot(st_robot *robot_st) {
     // Initialize led pin
     init_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC, ENUM_PINMODE_OUTPUT);
@@ -22,6 +28,11 @@ void init_robot(st_robot *robot_st) {
     robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_1].valid = false;
 }
 
+/**
+ * @brief Main robot state machine
+ * 
+ * @param robot_st 
+ */
 void robot_state_machine(st_robot *robot_st) {
     switch (robot_st->state_en) {
         case ENUM_STATE_INIT:
@@ -42,12 +53,13 @@ void robot_state_machine(st_robot *robot_st) {
             break;
 
         case ENUM_STATE_BLINK_LED:
-            // Check if battery is bellow 10%
-            if(robot_st->battery * 100 / ROBOT_BATTERY_CAPACITY_MA_S < 10) {
-                blink_led();
+            // Blink if battery is bellow 10%
+            if(calculate_battery_level(robot_st->battery) < ROBOT_BATTERY_CRITICAL_PERCENTAGE) {
+                blink_led();                
             } else {
                 set_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC,false);
             }
+
             robot_st->state_en = ENUM_STATE_CHECK_SERIAL;
             break;
 
@@ -66,6 +78,12 @@ void robot_state_machine(st_robot *robot_st) {
     }
 }
 
+/**
+ * @brief Read all buttons and 
+ * manage actions according with it
+ * 
+ * @param robot_st 
+ */
 void handle_keyboard(st_robot *robot_st) {
     for(int i = 0; i < KEYBOARD_NUM_BUTTONS; i++) {
         if(read_keyboard(i)) {
@@ -80,102 +98,119 @@ void handle_keyboard(st_robot *robot_st) {
     }
 }
 
+/**
+ * @brief Display response to buttons press
+ * 
+ * @param robot_st 
+ * @param bt 
+ */
 void handle_display(st_robot *robot_st, char bt) {
     st_display *display_st = &(robot_st->display_st);
-    
-    static char password[LAST_POS_4CHAR_STR+2] = "    ";
-    static char slt_hour[LAST_POS_2CHAR_STR+2] = "  ";
-    static char slt_min[LAST_POS_2CHAR_STR+2] = "  ";
-    static char slt_len[LAST_POS_2CHAR_STR+2] = "  ";
-    static char slt_hgt[LAST_POS_2CHAR_STR+2] = "  ";
-    static char slt_cnt[LAST_POS_3CHAR_STR+2] = "   ";
-    static char time_unit = 'm';
-    static uint8_t slt_area = 0;
-    static uint8_t index = 0;
 
+    // Local variables for display management
+    static char lpassword[LAST_POS_4CHAR_STR+2] = "    ";
+    static char lhour[LAST_POS_2CHAR_STR+2] = "  ";
+    static char lminute[LAST_POS_2CHAR_STR+2] = "  ";
+    static char llength[LAST_POS_2CHAR_STR+2] = "  ";
+    static char lheight[LAST_POS_2CHAR_STR+2] = "  ";
+    static char lcenter[LAST_POS_3CHAR_STR+2] = "   ";
+    static char lunit = 'h'; // [h] Hour  | [m] minute
+    static uint8_t larea_index = 0;
+    static uint8_t lindex = 0;
+
+    // Manage actions based on screen state
     switch (display_st->screen_en) {
-// =============== SCREEN LOGIN ===============
+        // Screen login
         case ENUM_SCREEN_LOGIN:
-            // Check if is digit
+            // Check if pressed button is digit
             if(isdigit(bt)) {
-                password[index] = bt;
-                index = index >= LAST_POS_4CHAR_STR ? 0 : index+1; 
+                lpassword[lindex] = bt;
+
+                // Update string index
+                lindex = lindex >= LAST_POS_4CHAR_STR ? 0 : lindex+1; 
 
                 // Update display
-                sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                 sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                 display_st->update = true;
-            } else if(bt == '#') {
-                // Check password
-                if(!strcmp(password, ROBOT_USER_PASSWORD_ADM)) {
-                    // Reset password
-                    strcpy(password, "    ");
-                    index = 0;
 
-                    // Change screen state
+            // Check is # was pressed
+            } else if(bt == '#') {
+                // Verify if actual password is ADM USER password
+                if(!strcmp(lpassword, ROBOT_USER_PASSWORD_ADM)) {
+                    // Reset password
+                    strcpy(lpassword, "    ");
+                    // Reset string index
+                    lindex = 0;
+
+                    // Change to ADM USER main screen
                     display_st->screen_en = ENUM_SCREEN_MAIN_MENU_USER_ADM;
 
                     // Update display
                     sprintf(display_st->row0, LCD_SCREEN_MAIN_MENU_USER_ADM_ROW0);
                     sprintf(display_st->row1, LCD_SCREEN_MAIN_MENU_USER_ADM_ROW1);
-                    display_st->update = true;                            
-                } else if(!strcmp(password, ROBOT_USER_PASSWORD_COM)) {
-                    // Reset password
-                    strcpy(password, "    ");
-                    index = 0;
+                    display_st->update = true;       
 
-                    // Change screen state
+                } else if(!strcmp(lpassword, ROBOT_USER_PASSWORD_COM)) {
+                    // Verify if actual password is COMMUM USER password
+                    strcpy(lpassword, "    ");
+                    lindex = 0;
+
+                    // Change to COMMUM USER main screen
                     display_st->screen_en = ENUM_SCREEN_MAIN_MENU_USER_COM;
 
                     // Update display
                     sprintf(display_st->row0, LCD_SCREEN_MAIN_MENU_USER_COM_ROW0);
                     sprintf(display_st->row1, LCD_SCREEN_MAIN_MENU_USER_COM_ROW1);
                     display_st->update = true;  
-                } else {            
+
+                // Invalid password
+                } else {           
                     // Reset password
-                    strcpy(password, "    ");
-                    index = 0;
+                    strcpy(lpassword, "    ");
+                    lindex = 0;
                     
                     // Update display
-                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                     sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                     display_st->update = true; 
                 }
             }
             break;
 
-// =============== MAIN MENU USER ADM ===============
+        // Screen main menu ADM USER
         case ENUM_SCREEN_MAIN_MENU_USER_ADM:
             switch (bt) {
+                // Option [1]: Start normal cleaning routine
                 case '1':
-                    // Start normal cleaning routine
-                    
+                    // Call normal cleaning function
 
-                    // Change screen state
+
+                    // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                     // Update screen
-                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                     sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                     display_st->update = true;
                     break;
-                
+
+                // Option [2]: Start edge cleaning routine
                 case '2':
-                    // Start edge cleaning routine
+                    // Call edge cleaning function
 
-                    // Change screen state
+                    // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                     // Update screen
-                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                     sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                     display_st->update = true;
                     break;
 
+                // Option [3]: Set new blocked area
                 case '3':
-                    index = 0;
-
-                    // Change screen state
+                    // Change to Select Blocked Area screen
                     display_st->screen_en = ENUM_SCREEN_SLCT_BLOCK_AREA_USER_ADM;
 
                     // Update screen
@@ -184,21 +219,21 @@ void handle_display(st_robot *robot_st, char bt) {
                     display_st->update = true;
                     break;
 
+                // Option [4]: Set new automatic cleaning hour
                 case '4':
-                    // Reset string index
-                    index = 0;
-                    time_unit = 'm';
+                    // Start setting the hour
+                    lunit = 'h';
 
-                    // Set hour and minute
-                    sprintf(slt_hour, "%02d", robot_st->wakeup_time.hour);
-                    sprintf(slt_min, "%02d", robot_st->wakeup_time.minute);
+                    // Get actual automatic cleaning hour
+                    sprintf(lhour, "%02d", robot_st->wakeup_time.hour);
+                    sprintf(lminute, "%02d", robot_st->wakeup_time.minute);
 
-                    // Change screen state
+                    // Change to Setting hour screen
                     display_st->screen_en = ENUM_SCREEN_CHNG_HOUR_USER_ADM;
 
                     // Update screen
                     sprintf(display_st->row0, LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW0);
-                    sprintf(display_st->row1, LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1, slt_hour, slt_min);
+                    sprintf(display_st->row1, LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1, lhour, lminute);
                     display_st->update = true;
                     break;
 
@@ -207,36 +242,38 @@ void handle_display(st_robot *robot_st, char bt) {
             }
             break;
 
-// =============== SELECT BLOCKED AREA ===============
+        // Screen Select Blocked Area
         case ENUM_SCREEN_SLCT_BLOCK_AREA_USER_ADM: 
             switch (bt) {
                 case '1':
-                    slt_area = 0;
+                    // Select blocked area 0
+                    larea_index = 0;
 
-                    itoa(robot_st->blocked_area_st[slt_area].x, slt_len, DEC_BASE);
-                    index = 0;
+                    // Get actual blocked area length
+                    itoa(robot_st->blocked_area_st[larea_index].length, llength, DEC_BASE);
 
-                    // Change screen state
+                    // Change to Select Blocked Area Length screen
                     display_st->screen_en = ENUM_SCREEN_SLCT_LEN_USER_ADM;
 
                     // Update screen
                     sprintf(display_st->row0, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0);
-                    sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, slt_len);
+                    sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, llength);
                     display_st->update = true;
                     break;
                 
                 case '2':
-                    slt_area = 1;
+                    // Select blocked area 1
+                    larea_index = 1;
+                    
+                    // Get actual blocked area length
+                    itoa(robot_st->blocked_area_st[larea_index].length, llength, DEC_BASE);
 
-                    itoa(robot_st->blocked_area_st[slt_area].x, slt_len, DEC_BASE);
-                    index = 0;
-
-                    // Change screen state
+                    // Change to Select Blocked Area Length screen
                     display_st->screen_en = ENUM_SCREEN_SLCT_LEN_USER_ADM;
 
                     // Update screen
                     sprintf(display_st->row0, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0);
-                    sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, slt_len);
+                    sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, llength);
                     display_st->update = true;
                     break;
 
@@ -245,150 +282,177 @@ void handle_display(st_robot *robot_st, char bt) {
             }
             break;
 
-// =============== SELECT LENGTH OF BLOCKED AREA ===============
+        // Screen Select Blocked Area Length
         case ENUM_SCREEN_SLCT_LEN_USER_ADM:
             if(isdigit(bt)) {
-                slt_len[index] = bt;
-                index = index >= LAST_POS_2CHAR_STR ? 0 : index+1; 
+                // Update blocked area length variable
+                llength[lindex] = bt;
+                // Update string index
+                lindex = lindex >= LAST_POS_2CHAR_STR ? 0 : lindex+1; 
 
                 // Update display
                 sprintf(display_st->row0, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, slt_len);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, llength);
                 display_st->update = true;
             } else if(bt == '#') {
-                // New blocked area length
-                robot_st->blocked_area_st[slt_area].x = atoi(slt_len);
+                // Set new blocked area length
+                uint8_t length = atoi(llength);
+                if(length <= ROOM_LENGTH) {
+                    robot_st->blocked_area_st[larea_index].length = length;
+                }                
 
-                itoa(robot_st->blocked_area_st[slt_area].y, slt_hgt, DEC_BASE);
-                index = 0;
+                // Get actual blocked area height
+                itoa(robot_st->blocked_area_st[larea_index].height, lheight, DEC_BASE);
 
                 // Change screen state
                 display_st->screen_en = ENUM_SCREEN_SLCT_HGT_USER_ADM;
 
                 // Update display
                 sprintf(display_st->row0, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1, slt_hgt);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1, lheight);
                 display_st->update = true;
             }
             break;
 
-// =============== SELECT HEIGHT OF BLOCKED AREA ===============
+        // Screen Select Blocked Area Height
         case ENUM_SCREEN_SLCT_HGT_USER_ADM:
             if(isdigit(bt)) {
-                slt_hgt[index] = bt;
-                index = index >= LAST_POS_2CHAR_STR ? 0 : index+1; 
+                // Update blocked area height variable
+                lheight[lindex] = bt;
+                // Update string index
+                lindex = lindex >= LAST_POS_2CHAR_STR ? 0 : lindex+1; 
 
                 // Update display
                 sprintf(display_st->row0, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1, slt_hgt);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1, lheight);
                 display_st->update = true;
             } else if(bt == '#') {
                 // New blocked area height
-                robot_st->blocked_area_st[slt_area].y = atoi(slt_hgt);
+                uint8_t height = atoi(lheight);
+                if(height <= ROOM_HEIGHT) {
+                    robot_st->blocked_area_st[larea_index].height = height;
+                }
 
-                itoa(robot_st->blocked_area_st[slt_area].center, slt_cnt, DEC_BASE);
-                index = 0;
+                // Get actual blocked area center
+                itoa(robot_st->blocked_area_st[larea_index].center, lcenter, DEC_BASE);
 
-                // Change screen state
+                // Change to Select Blocked Area Center screen
                 display_st->screen_en = ENUM_SCREEN_SLCT_CNT_USER_ADM;
 
                 // Update display
                 sprintf(display_st->row0, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1, slt_cnt);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1, lcenter);
                 display_st->update = true;
             }
             break;
 
-// =============== SELECT CENTER OF BLOCKED AREA ===============
+        // Screen Select Blocked Area Center
         case ENUM_SCREEN_SLCT_CNT_USER_ADM:
             if(isdigit(bt)) {
-                slt_cnt[index] = bt;
-                index = index >= LAST_POS_3CHAR_STR ? 0 : index+1; 
+                // Update blocked area height variable
+                lcenter[lindex] = bt;
+                // Update string index
+                lindex = lindex >= LAST_POS_3CHAR_STR ? 0 : lindex+1; 
 
                 // Update display
                 sprintf(display_st->row0, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1, slt_cnt);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1, lcenter);
                 display_st->update = true;
             } else if(bt == '#') {
                 // New blocked area center
-                robot_st->blocked_area_st[slt_area].center = atoi(slt_cnt);
+                uint8_t center = atoi(lcenter);
+                if(lcenter <= (ROOM_LENGTH - robot_st->blocked_area_st[larea_index].length / 2)) {
+                    robot_st->blocked_area_st[larea_index].center = atoi(lcenter);
 
-                index = 0;
+                }
 
-                // Change screen state
+                // Reset local index
+                lindex = 0;
+
+                // Change to Login screen
                 display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                 // Update display
-                sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                 sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                 display_st->update = true;
             }
             break;
 
-// =============== SELECT AUTOMATIC WAKEUP TIME ===============
+        // Screen set Automatic Clening Hour
         case ENUM_SCREEN_CHNG_HOUR_USER_ADM:
             if(isdigit(bt)) {
-                if(time_unit == 'm') {
-                    slt_hour[index] = bt;
-                } else if(time_unit == 'h') {
-                    slt_min[index] = bt;
+                // Update hour and minute local variables
+                if(lunit == 'h') {
+                    lhour[lindex] = bt;
+                } else if(lunit == 'm') {
+                    lminute[lindex] = bt;
                 }
 
-                if(index < LAST_POS_2CHAR_STR) {
-                    index++;
-                } else if(time_unit == 'm') {
-                    index = 0;
-                    time_unit = 'h';
-                } else if(time_unit == 'h') {
-                    index = 0;
-                    time_unit = 'm';
+                // Update setting algarims
+                if(lindex < LAST_POS_2CHAR_STR) {
+                    lindex++;
+                } else if(lunit == 'm') {
+                    lindex = 0;
+                    lunit = 'h';
+                } else if(lunit == 'h') {
+                    lindex = 0;
+                    lunit = 'm';
                 }
 
                 // Update display
                 sprintf(display_st->row0, LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1, slt_hour, slt_min);
+                sprintf(display_st->row1, LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1, lhour, lminute);
                 display_st->update = true;
             } else if(bt == '#') {
-                // New wakeup time
-                robot_st->wakeup_time.hour = atoi(slt_hour);
-                robot_st->wakeup_time.minute = atoi(slt_min);
+                // Set new actomatic clening time
+                uint8_t hour = atoi(lhour);
+                uint8_t minute = atoi(lminute);
+                if(hour <= MAX_HOUR && minute <= MAX_MINUTE) {
+                    robot_st->wakeup_time.hour = atoi(lhour);
+                    robot_st->wakeup_time.minute = atoi(lminute);
+                }              
 
-                index = 0;
+                // Reset local index
+                lindex = 0;
 
                 // Change screen state
                 display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                 // Update display
-                sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                 sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                 display_st->update = true;
             }
             break;
 
-// =============== MAIN MENU USER COMMUM ===============
+        // Screen COMMUM USER Main Menu
         case ENUM_SCREEN_MAIN_MENU_USER_COM:
             switch (bt) {
+                // Option [1]: Start normal cleaning routine
                 case '1':
-                    // Start normal cleaning routine
+                    // Call normal cleaning function
                     
 
-                    // Change screen state
+                    // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                     // Update screen
-                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                     sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                     display_st->update = true;
                     break;
                 
+                // Option [2] : Start edge cleaning routine
                 case '2':
-                    // Start edge cleaning routine
+                    // Call edge cleaning function
+
 
                     // Change screen state
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                     // Update screen
-                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, password);
+                    sprintf(display_st->row0, LCD_SCREEN_LOGIN_R0W0, lpassword);
                     sprintf(display_st->row1, LCD_SCREEN_LOGIN_R0W1);
                     display_st->update = true;
                     break;
@@ -403,7 +467,12 @@ void handle_display(st_robot *robot_st, char bt) {
     }
 }
 
-
+/**
+ * @brief Update display at constant rate
+ * if there are some modification
+ * 
+ * @param robot_st 
+ */
 void update_display(st_robot *robot_st) {
     unsigned long time = millis();
     static unsigned long timer = 0;
@@ -425,6 +494,10 @@ void update_display(st_robot *robot_st) {
     }    
 }
 
+/**
+ * @brief Blink LED
+ * 
+ */
 void blink_led(void) {
   static uint32_t timer = 0;
 
@@ -435,6 +508,13 @@ void blink_led(void) {
   }
 }
 
+/**
+ * @brief Identify wich button was pressed
+ * based on the en_button enumeration
+ * 
+ * @param bt_index 
+ * @return char 
+ */
 char identify_button(uint8_t bt_index) {
     char bt = ' ';
 
@@ -495,6 +575,21 @@ char identify_button(uint8_t bt_index) {
     return bt;
 }
 
+/**
+ * @brief Calculate the battery percentage level
+ * 
+ * @param battery 
+ * @return uint8_t 
+ */
+uint8_t calculate_battery_level(uint16_t battery) {
+    uint8_t percent = (battery / ROBOT_BATTERY_CAPACITY_MA_S) * CONVERT_TO_PERCENTAGE;
+    return percent;
+}
+
+/**
+ * @brief Reboot the microcontroler
+ * 
+ */
 void reboot(void) {
   // Disable interruptions
   cli();
