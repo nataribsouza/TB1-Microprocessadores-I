@@ -80,8 +80,7 @@ Resposta simulador
 | Data | Tipo   | Tamanho (bytes) | Descrição         |
 | ---- | ------ | --------------- | ----------------- |
 | 'S'  | `char` | 1               | Remetente         |
-| 'T'  | `char` | 1               | Comando           |
-| te   | `int`  | 1               | Temperatura em °C |
+| 'x'  | `char` | 1               | `M`: Movimentação realizada <br>`X`: Movimentação não realizada|
 
 
 6. **Solicita temperatura**
