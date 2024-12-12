@@ -13,7 +13,9 @@
 #define ROBOT_H
 
 /* Includes */
+#include <avr/wdt.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "kernel/regLib.h"
@@ -24,6 +26,7 @@
 #include "keyboard/keyboard.h"
 
 /* Defines */
+#define DEC_BASE 10
 #define ROBOT_USER_PASSWORD_ADM "1325"
 #define ROBOT_USER_PASSWORD_COM "4213"
 #define ROBOT_PIN_LED 1
@@ -36,7 +39,7 @@
 #define ROBOT_DFL_WAKEUP_TIME_MIN 0
 #define ROBOT_BLOCKED_ARAE_0 0
 #define ROBOT_BLOCKED_ARAE_1 1
-#define ROBOT_TIME_UPDATE_DISPLAY_MS 1000
+#define ROBOT_TIME_UPDATE_DISPLAY_MS 200
 
 /* Enums */
 typedef enum {
@@ -75,13 +78,14 @@ typedef struct {
     st_time wakeup_time;
     st_blocked_area blocked_area_st[ROBOT_NUM_BLOCKED_AREAS];
     st_display display_st;
-}st_robot;
+} st_robot;
 
 /* Prototypes */
+void reboot(void);
 void blink_led(void);
-void update_display(st_display *display_st);
-void handle_keyboard(st_display *display_st);
-void handle_display(st_display *displa_st, char bt);
+void update_display(st_robot *robot_st);
+void handle_keyboard(st_robot *robot_st);
+void handle_display(st_robot *robot_st, char bt);
 void init_robot(st_robot *robot_st);
 void robot_state_machine(st_robot *robot_st);
 void robot_clean_edges(st_robot *robot_st);

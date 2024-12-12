@@ -125,6 +125,9 @@ void display_print(const char *str) {
     }
 }
 
+char string[8] = "hello mundo";
+serial_print(string);
+
 /**
  * @brief Clear display
  * 

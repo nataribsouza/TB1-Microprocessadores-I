@@ -35,28 +35,38 @@
 #define LCD_CMD_SET_CURSOR 0x80
 #define LCD_CMD_SET_CURSOR_MODE 0x0C
 #define LCD_CMD_SET_CURSOR_INCREMENT 0x06
-#define LCD_DELAY_SHOW_START_SCREE 5000
-#define LCD_PARAMETER_4_CHAR_FIRST_POS 3
-#define LCD_PARAMETER_2_CHAR_FIRST_POS 1
+#define LCD_DELAY_SHOW_START_SCREE 2000
+#define LAST_POS_4CHAR_STR 3
+#define LAST_POS_3CHAR_STR 2
+#define LAST_POS_2CHAR_STR 1
 #define ASCII_NUM_0
 #define ASCII_NUM_9
 
-// Screen messages
+/* Screens display */
+// Start 
 #define LCD_SCREEN_START "   AspiranTec   "
-#define LCD_SCREEN_LOGIN_R0W0 "SENHA: %4s"
+// Login 
+#define LCD_SCREEN_LOGIN_R0W0 "SENHA: %s"
 #define LCD_SCREEN_LOGIN_R0W1 "[#] Enter"
+// Main menu user adm
 #define LCD_SCREEN_MAIN_MENU_USER_ADM_ROW0 "[1]Nor   [2]Cant"
 #define LCD_SCREEN_MAIN_MENU_USER_ADM_ROW1 "[3]Blk   [4]Hora"
+// Select block area
 #define LCD_SCREEN_SLCT_BLOCK_AREA_USER_ADM_ROW0 "Selecione a area"
 #define LCD_SCREEN_SLCT_BLOCK_AREA_USER_ADM_ROW1 "[1] 1      [2] 2"
-#define LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0 "Comp da area"
-#define LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1 "%4s   [#] Enter"
-#define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW0 "Larg da area"
-#define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1 "%4s   [#] Enter"
+// Select block area length
+#define LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0 "Larg da area"
+#define LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1 "%s   [#] Enter"
+// Select block area height
+#define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW0 "Altr da area"
+#define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1 "%s   [#] Enter"
+// Select block area center
 #define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0 "Cent da area"
-#define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1 "%4s   [#] Enter"
+#define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1 "%s   [#] Enter"
+// Change wakup time
 #define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW0 "Hora limp normal"
-#define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1 "%2s:%2s  [#] Enter"
+#define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1 "%s:%s  [#] Enter"
+// Main menu use commum
 #define LCD_SCREEN_MAIN_MENU_USER_COM_ROW0 "[1]Nor   [2]Cant"
 #define LCD_SCREEN_MAIN_MENU_USER_COM_ROW1 ""
 
@@ -64,12 +74,13 @@
 typedef enum {
     ENUM_SCREEN_LOGIN,
     ENUM_SCREEN_MAIN_MENU_USER_ADM,
+    ENUM_SCREEN_SLCT_BLOCK_AREA_USER_ADM,
     ENUM_SCREEN_SLCT_LEN_USER_ADM,
     ENUM_SCREEN_SLCT_HGT_USER_ADM,
     ENUM_SCREEN_SLCT_CNT_USER_ADM,
     ENUM_SCREEN_CHNG_HOUR_USER_ADM,
     ENUM_SCREEN_MAIN_MENU_USER_COM
-}en_screen;
+} en_screen;
 
 /* Structures */
 typedef struct {
