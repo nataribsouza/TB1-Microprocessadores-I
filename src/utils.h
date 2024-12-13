@@ -18,6 +18,7 @@
 
 /* Defines */
 #define CONVERT_TO_PERCENTAGE 100
+#define CONVERT_MS_TO_S 1000
 #define DEC_BASE 10
 #define MAX_HOUR 23
 #define MAX_MINUTE 59

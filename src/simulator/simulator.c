@@ -26,20 +26,13 @@ void simulator_handle_receive(st_environment *environment_st) {
     // Check if there are new bytes available
     if(serial_available()) {
         // Local variables
-        char lbuffer[SIMULATOR_BUFFER_LENGTH];
         char buffer_answer[SIMULATOR_BUFFER_LENGTH];
         uint8_t i  = 0;
 
-        // Read bytes available
-        while(serial_available()) {
-            lbuffer[i] = serial_read();
-            i++;
-        }
-
         // Check if the sender is the simulator 'S'
-        if(lbuffer[PROTOCOL_SENDER_INDEX] == PROTOCOL_SENDER_SIMULATOR) {
+        if(serial_read() == PROTOCOL_SENDER_SIMULATOR) {
             // Handle each command
-            switch (lbuffer[PROTOCOL_COMMAND_INDEX]) {
+            switch (serial_read()) {
                 case PROTOCOL_COMMAND_VACCUUM_TURN_ON:
                     // Update vaccuum status
                     environment_st->vaccuum_st.state = true;
@@ -54,7 +47,7 @@ void simulator_handle_receive(st_environment *environment_st) {
 
                 case PROTOCOL_COMMAND_MOVEMENT:
                     // Confirm movement was executed
-                    environment_st->move_en.valid = true;
+                    environment_st->move_st.valid = true;
                     break;
 
                 case PROTOCOL_COMMAND_MOVEMENT_FAIL:
@@ -76,30 +69,30 @@ void simulator_handle_receive(st_environment *environment_st) {
                 case PROTOCOL_COMMAND_TEMPERATURE:
                     // Update enviroment temperature
                     environment_st->temperature_st.old_temperature = environment_st->temperature_st.temperature;
-                    environment_st->temperature_st.temperature = lbuffer[PROTOCOL_COMMAND_TEMPERATURE_TEMP_INDEX];
+                    environment_st->temperature_st.temperature = serial_read();
                     environment_st->temperature_st.valid = true;
                     break;
 
                 case PROTOCOL_COMMAND_INFO:
                     // Update environment info
-                    environment_st->obstacle_st.obstacle = lbuffer[PROTOCOL_COMMAND_INFO_OBSTACLE_INDEX];
-                    environment_st->dust_st.collected_dust = lbuffer[PROTOCOL_COMMAND_INFO_DUST_INDEX];
+                    environment_st->obstacle_st.obstacle = serial_read();
+                    environment_st->dust_st.collected_dust = serial_read();;
                     environment_st->obstacle_st.valid = true;
                     environment_st->dust_st.valid = true;
                     
                     // Send answer
-                    sprintf(buffer_answer, PROTOCOL_ROBOT_ANSWER, PROTOCOL_SENDER_ROBOT, PROTOCOL_COMMAND_INFO);
+                    sprintf(buffer_answer, PROTOCOL_ROBOT_ANSWER_2BYTES, PROTOCOL_SENDER_ROBOT, PROTOCOL_COMMAND_INFO);
                     serial_print(buffer_answer);
                     break;
 
                 case PROTOCOL_COMMAND_CLOCK:
                     // Update enviroment clock
-                    environment_st->clock_st.time_st.hour = lbuffer[PROTOCOL_COMMAND_CLOCK_HOUR_INDEX];
-                    environment_st->clock_st.time_st.minute = lbuffer[PROTOCOL_COMMAND_CLOCK_MINUTE_INDEX];
+                    environment_st->clock_st.time_st.hour = serial_read();
+                    environment_st->clock_st.time_st.minute = serial_read();
                     environment_st->clock_st.valid = true;
 
                     // Send answer
-                    sprintf(buffer_answer, PROTOCOL_ROBOT_ANSWER, PROTOCOL_SENDER_ROBOT, PROTOCOL_COMMAND_CLOCK);
+                    sprintf(buffer_answer, PROTOCOL_ROBOT_ANSWER_2BYTES, PROTOCOL_SENDER_ROBOT, PROTOCOL_COMMAND_CLOCK);
                     serial_print(buffer_answer);
                     break;
                 
@@ -108,4 +101,19 @@ void simulator_handle_receive(st_environment *environment_st) {
             }
         }
     }
+}
+
+void simulator_move(st_environment *environment_st, en_move move_en) {
+    environment_st->move_st.move_en = move_en;
+    char buffer[SIMULATOR_BUFFER_LENGTH];
+    sprintf(buffer, PROTOCOL_ROBOT_ANSWER_3BYTES, PROTOCOL_SENDER_ROBOT, PROTOCOL_COMMAND_MOVEMENT, (char)move_en);
+    serial_print(buffer);
+}
+
+void simulator_vaccuum(st_environment *environment_st, bool state) {
+    environment_st->vaccuum_st.state = state;
+
+    char buffer[SIMULATOR_BUFFER_LENGTH];
+    sprintf(buffer, PROTOCOL_ROBOT_ANSWER_2BYTES, PROTOCOL_SENDER_ROBOT, state ? PROTOCOL_COMMAND_VACCUUM_TURN_ON : PROTOCOL_COMMAND_VACCUUM_TURN_OFF);
+    serial_print(buffer);
 }

@@ -37,7 +37,6 @@
 #define LCD_CMD_SET_CURSOR_INCREMENT 0x06
 #define LCD_DELAY_SHOW_START_SCREE 3000
 #define LAST_POS_4CHAR_STR 3
-#define LAST_POS_3CHAR_STR 2
 #define LAST_POS_2CHAR_STR 1
 #define ASCII_NUM_0
 #define ASCII_NUM_9
@@ -60,9 +59,12 @@
 // Select block area height
 #define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW0 "Altura da Area"
 #define LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1 "%s   [#] Enter"
-// Select block area center
-#define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0 "Centro da Area"
-#define LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1 "%s   [#] Enter"
+// Select position X
+#define LCD_SCREEN_SLCT_POS_X_USER_ADM_ROW0 "Posicao X"
+#define LCD_SCREEN_SLCT_POS_X_USER_ADM_ROW1 "%s   [#] Enter"
+// Select position Y
+#define LCD_SCREEN_SLCT_POS_Y_USER_ADM_ROW0 "Posicao Y"
+#define LCD_SCREEN_SLCT_POS_Y_USER_ADM_ROW1 "%s   [#] Enter"
 // Change wakup time
 #define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW0 "Horario limpeza"
 #define LCD_SCREEN_CHNG_HOUR_USER_ADM_ROW1 "%s:%s  [#] Enter"
@@ -77,7 +79,8 @@ typedef enum {
     ENUM_SCREEN_SLCT_BLOCK_AREA_USER_ADM,
     ENUM_SCREEN_SLCT_LEN_USER_ADM,
     ENUM_SCREEN_SLCT_HGT_USER_ADM,
-    ENUM_SCREEN_SLCT_CNT_USER_ADM,
+    ENUM_SCREEN_SLCT_POS_X_USER_ADM,
+    ENUM_SCREEN_SLCT_POS_Y_USER_ADM,
     ENUM_SCREEN_CHNG_HOUR_USER_ADM,
     ENUM_SCREEN_MAIN_MENU_USER_COM
 } en_screen;

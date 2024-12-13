@@ -21,10 +21,15 @@
 /* Defines */
 #define ROOM_LENGTH 10
 #define ROOM_HEIGHT 8
+#define ROM_MIN_X_POS 0
+#define ROM_MIN_Y_POS 0
+#define ROOM_MAX_X_POSITION 9
+#define ROOM_MAX_Y_POSITION 7
 #define ENVIROMENT_INIT_TEMPERATURE 25
 #define SIMULATOR_BUFFER_LENGTH 8
 #define PROTOCOL_SENDER_INDEX 0
 #define PROTOCOL_COMMAND_INDEX 1
+#define PROTOCOL_MOVEMENT_INDEX 2
 #define PROTOCOL_COMMAND_INFO_OBSTACLE_INDEX 2
 #define PROTOCOL_COMMAND_INFO_DUST_INDEX 3
 #define PROTOCOL_COMMAND_CLOCK_HOUR_INDEX 2
@@ -41,7 +46,8 @@
 #define PROTOCOL_COMMAND_TEMPERATURE 'T'
 #define PROTOCOL_COMMAND_INFO 'I'
 #define PROTOCOL_COMMAND_CLOCK 'H'
-#define PROTOCOL_ROBOT_ANSWER "%c%c"
+#define PROTOCOL_ROBOT_ANSWER_2BYTES "%c%c"
+#define PROTOCOL_ROBOT_ANSWER_3BYTES "%c%c%c"
 
 /* Enums */
 typedef enum{
@@ -65,7 +71,7 @@ typedef struct {
 
 typedef struct {
     bool valid;
-    bool obstacle;
+    uint8_t obstacle;
 } st_obstacle;
 
 typedef struct {
@@ -95,12 +101,13 @@ typedef struct {
     st_temperature temperature_st;
     st_obstacle obstacle_st;
     st_clock clock_st;
-    st_move move_en;
+    st_move move_st;
 } st_environment;
 
 /* Prototypes */
 void init_environment(st_environment *environment_st);
 void simulator_handle_receive(st_environment *environment_st);
-void simulator_move(en_move move_en);
+void simulator_move(st_environment *environment_st, en_move move_en);
+void simulator_vaccuum(st_environment *environment_st, bool state);
 
 #endif /* SIMULATOR_H */

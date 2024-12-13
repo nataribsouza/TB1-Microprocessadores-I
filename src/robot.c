@@ -19,16 +19,21 @@ void init_robot(st_robot *robot_st) {
     sprintf(robot_st->display_st.row1, LCD_SCREEN_LOGIN_R0W1);
 
     // Set robot structure
+    robot_st->mop = false;
     robot_st->vacuum = false;
-    robot_st->state_machine_en = ENUM_STATE_INIT;
-    robot_st->orient_en = ENUM_ORIENTATION_NORTH;
+    robot_st->docked = true;
+    robot_st->dust = 0;
     robot_st->battery = ROBOT_BATTERY_CAPACITY_MA_S;
-    robot_st->position[ROBOT_POSITION_X_INDEX] = ROBOT_INITIAL_POSITION_X;
-    robot_st->position[ROBOT_POSITION_Y_INDEX] = ROBOT_INITIAL_POSITION_Y;
+    robot_st->orientation_en = ENUM_ORIENTATION_NORTH;
+    robot_st->position_st.x = ROBOT_INITIAL_POSITION_X;
+    robot_st->position_st.y = ROBOT_INITIAL_POSITION_Y;
     robot_st->time.hour = ROBOT_DFL_WAKEUP_TIME_H;
     robot_st->time.minute = ROBOT_DFL_WAKEUP_TIME_MIN;
-    robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_0].valid = false;
-    robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_1].valid = false;
+    robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_0].length = 0;
+    robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_0].height = 0;
+    robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_1].length = 0;
+    robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_1].height = 0;
+    robot_st->state_machine_en = ENUM_STATE_INIT;
 }
 
 /**
@@ -40,6 +45,7 @@ void state_machine(st_robot *robot_st, st_environment *environment_st) {
     switch (robot_st->state_machine_en) {
         case ENUM_STATE_INIT:
             init_robot(robot_st);
+            init_environment(environment_st);
             robot_st->state_machine_en = ENUM_STATE_READ_KEYBOARD;
             break;
 
@@ -67,10 +73,12 @@ void state_machine(st_robot *robot_st, st_environment *environment_st) {
             break;
 
         case ENUM_STATE_CHECK_SERIAL:
+            simulator_handle_receive(environment_st);
             robot_st->state_machine_en = ENUM_STATE_MOVE;
             break;
 
         case ENUM_STATE_MOVE:
+            handle_movement(robot_st, environment_st);
             robot_st->state_machine_en = ENUM_STATE_READ_KEYBOARD;
             break;
         
@@ -79,10 +87,6 @@ void state_machine(st_robot *robot_st, st_environment *environment_st) {
             reboot();
             break;
     }
-}
-
-void handle_moviment(st_robot *robot_st) {
-    
 }
 
 /**
@@ -96,8 +100,6 @@ void handle_keyboard(st_robot *robot_st) {
         if(read_keyboard(i)) {
             // Identify wich button was pressed 
             char bt = identify_button(i);
-
-            serial_write(bt);
 
             // Handle display behavior
             handle_display(robot_st, bt);
@@ -120,7 +122,8 @@ void handle_display(st_robot *robot_st, char bt) {
     static char lminute[LAST_POS_2CHAR_STR+2] = "  ";
     static char llength[LAST_POS_2CHAR_STR+2] = "  ";
     static char lheight[LAST_POS_2CHAR_STR+2] = "  ";
-    static char lcenter[LAST_POS_3CHAR_STR+2] = "   ";
+    static char lx[LAST_POS_2CHAR_STR+2] = "  ";
+    static char ly[LAST_POS_2CHAR_STR+2] = "  ";
     static char lunit = 'h'; // [h] Hour  | [m] minute
     static uint8_t larea_index = 0;
     static uint8_t lindex = 0;
@@ -191,7 +194,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 // Option [1]: Start normal cleaning routine
                 case '1':
                     // Call normal cleaning function
-
+                    robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_NORMAL;
 
                     // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
@@ -205,6 +208,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 // Option [2]: Start edge cleaning routine
                 case '2':
                     // Call edge cleaning function
+                    robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_EDGES;
 
                     // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
@@ -301,13 +305,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 sprintf(display_st->row0, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW0);
                 sprintf(display_st->row1, LCD_SCREEN_SLCT_LEN_USER_ADM_ROW1, llength);
                 display_st->update = true;
-            } else if(bt == '#') {
-                // Set new blocked area length
-                uint8_t length = atoi(llength);
-                if(length <= ROOM_LENGTH) {
-                    robot_st->blocked_area_st[larea_index].length = length;
-                }                
-
+            } else if(bt == '#') {          
                 // Get actual blocked area height
                 itoa(robot_st->blocked_area_st[larea_index].height, lheight, DEC_BASE);
 
@@ -334,49 +332,80 @@ void handle_display(st_robot *robot_st, char bt) {
                 sprintf(display_st->row1, LCD_SCREEN_SLCT_HGT_USER_ADM_ROW1, lheight);
                 display_st->update = true;
             } else if(bt == '#') {
-                // New blocked area height
-                uint8_t height = atoi(lheight);
-                if(height <= ROOM_HEIGHT) {
-                    robot_st->blocked_area_st[larea_index].height = height;
-                }
-
-                // Get actual blocked area center
-                itoa(robot_st->blocked_area_st[larea_index].center, lcenter, DEC_BASE);
+                // Get actual blocked area X position
+                itoa(robot_st->blocked_area_st[larea_index].position_st.x, lx, DEC_BASE);
 
                 // Change to Select Blocked Area Center screen
-                display_st->screen_en = ENUM_SCREEN_SLCT_CNT_USER_ADM;
+                display_st->screen_en = ENUM_SCREEN_SLCT_POS_X_USER_ADM;
 
                 // Update display
-                sprintf(display_st->row0, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1, lcenter);
+                sprintf(display_st->row0, LCD_SCREEN_SLCT_POS_X_USER_ADM_ROW0);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_POS_X_USER_ADM_ROW1, lx);
                 display_st->update = true;
             }
             break;
 
-        // Screen Select Blocked Area Center
-        case ENUM_SCREEN_SLCT_CNT_USER_ADM:
+        // Screen Select Blocked Area Position X
+        case ENUM_SCREEN_SLCT_POS_X_USER_ADM:
             if(isdigit(bt)) {
                 // Update blocked area height variable
-                lcenter[lindex] = bt;
+                lx[lindex] = bt;
                 // Update string index
-                lindex = lindex >= LAST_POS_3CHAR_STR ? 0 : lindex+1; 
+                lindex = lindex >= LAST_POS_2CHAR_STR ? 0 : lindex+1; 
 
                 // Update display
-                sprintf(display_st->row0, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW0);
-                sprintf(display_st->row1, LCD_SCREEN_SLCT_CNT_USER_ADM_ROW1, lcenter);
+                sprintf(display_st->row0, LCD_SCREEN_SLCT_POS_X_USER_ADM_ROW0);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_POS_X_USER_ADM_ROW1, lx);
+                display_st->update = true;
+            } else if(bt == '#') {
+                // Reset local index
+                lindex = 0;
+
+                // Get actual blocked area Y position
+                itoa(robot_st->blocked_area_st[larea_index].position_st.y, ly, DEC_BASE);
+
+                // Change to Login screen
+                display_st->screen_en = ENUM_SCREEN_SLCT_POS_Y_USER_ADM;
+
+                // Update display
+                sprintf(display_st->row0, LCD_SCREEN_SLCT_POS_Y_USER_ADM_ROW0);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_POS_Y_USER_ADM_ROW1, ly);
+                display_st->update = true;
+            }
+            break;
+
+        // Screen Select Blocked Area Position X
+        case ENUM_SCREEN_SLCT_POS_Y_USER_ADM:
+            if(isdigit(bt)) {
+                // Update blocked area height variable
+                ly[lindex] = bt;
+                // Update string index
+                lindex = lindex >= LAST_POS_2CHAR_STR ? 0 : lindex+1; 
+
+                // Update display
+                sprintf(display_st->row0, LCD_SCREEN_SLCT_POS_Y_USER_ADM_ROW0);
+                sprintf(display_st->row1, LCD_SCREEN_SLCT_POS_Y_USER_ADM_ROW1, ly);
                 display_st->update = true;
             } else if(bt == '#') {
                 // New blocked area center
-                uint8_t center = atoi(lcenter);
-                if(lcenter <= (ROOM_LENGTH - robot_st->blocked_area_st[larea_index].length / 2)) {
-                    robot_st->blocked_area_st[larea_index].center = atoi(lcenter);
+                uint8_t length = atoi(llength);
+                uint8_t height = atoi(lheight);
+                uint8_t x = atoi(lx);
+                uint8_t y = atoi(ly);
+                if(length <= ROOM_LENGTH && height <= ROOM_HEIGHT
+                    && x < (ROOM_LENGTH - robot_st->blocked_area_st[larea_index].length)
+                    && y < (ROOM_HEIGHT - robot_st->blocked_area_st[larea_index].height)) {
 
-                }
+                    robot_st->blocked_area_st[larea_index].length = length;
+                    robot_st->blocked_area_st[larea_index].height = height;
+                    robot_st->blocked_area_st[larea_index].position_st.x = x;
+                    robot_st->blocked_area_st[larea_index].position_st.y = y;
+                }    
 
                 // Reset local index
                 lindex = 0;
 
-                // Change to Login screen
+                // Change screen state
                 display_st->screen_en = ENUM_SCREEN_LOGIN;
 
                 // Update display
@@ -439,7 +468,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 // Option [1]: Start normal cleaning routine
                 case '1':
                     // Call normal cleaning function
-                    
+                    robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_NORMAL;
 
                     // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
@@ -453,7 +482,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 // Option [2] : Start edge cleaning routine
                 case '2':
                     // Call edge cleaning function
-
+                    robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_EDGES;
 
                     // Change screen state
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
@@ -499,6 +528,174 @@ void update_display(st_robot *robot_st) {
             display_print(display_st->row1);
         }
     }    
+}
+
+void handle_movement(st_robot *robot_st, st_environment *environment_st) {
+    uint32_t time = millis();
+    static uint32_t timer = 0;
+
+    update_environment_parameters(robot_st, environment_st);
+
+    if(time - timer >= ROBOT_TIME_MOVEMENT_MS) {
+        timer = time;
+        uint8_t posx = robot_st->position_st.x;
+        uint8_t posy = robot_st->position_st.y;
+        en_orient orientation = robot_st->orientation_en;
+        st_blocked_area area0 = robot_st->blocked_area_st[0];
+        st_blocked_area area1 = robot_st->blocked_area_st[1];
+
+        recalculate_battery(robot_st);
+        uint16_t battery_percentage = (robot_st->battery / ROBOT_BATTERY_CAPACITY_MA_S) * CONVERT_TO_PERCENTAGE;
+
+        // Go base if battery less than 10%
+        if(battery_percentage < 10) {
+            //robot_st->cleaning_mode_en = ENUM_STATE_NO_CLEANING;
+        }
+
+        switch (robot_st->cleaning_mode_en) {
+            case ENUM_STATE_NO_CLEANING:
+                if (robot_st->docked) {
+                    // Charge battery and clean storage
+                    robot_st->dust = 0;
+                    robot_st->battery = ROBOT_BATTERY_CAPACITY_MA_S;
+                    robot_st->orientation_en = ENUM_ORIENTATION_NORTH;
+                    break;
+                }
+                
+                // Got to collum 9
+                if (robot_st->position_st.x < ROOM_MAX_X_POSITION) {                
+                    if (robot_st->orientation_en != ENUM_ORIENTATION_WEST) {
+                        simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                    } else if (robot_st->obstacle_ahead || !check_move_forward(robot_st)) {
+                        simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                    } else {
+                        simulator_move(environment_st,ENUM_MOVE_FORWARD);
+                    }
+                // Go to line 0
+                } else if (robot_st->position_st.y > ROM_MIN_Y_POS) {
+                    if (robot_st->orientation_en != ENUM_ORIENTATION_SOUTH) {
+                        simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                    } else if (robot_st->obstacle_ahead || !check_move_forward(robot_st)) {
+                        simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                    } else {
+                        simulator_move(environment_st, ENUM_MOVE_FORWARD);
+                    }
+                } else {
+                    simulator_move(environment_st, ENUM_MOVE_FORWARD);
+                }
+                break;
+
+            case ENUM_STATE_CLEAN_NORMAL:
+
+               // Estratégia simples: movimento em zig-zag
+                if (robot_st->obstacle_ahead || check_block_area(posx, posy, area0) || check_block_area(posx, posy, area1)) {
+                    simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                } else {
+                    simulator_move(environment_st, ENUM_MOVE_FORWARD);
+                }
+                break;
+
+            case ENUM_STATE_CLEAN_EDGES:
+                // Limpeza apenas no perímetro da sala
+                if (robot_st->obstacle_ahead || check_block_area(posx, posy, area0) || check_block_area(posx, posy, area1)) {
+                    simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                } else if (posx == 0 && posy > 0 && orientation != ENUM_ORIENTATION_NORTH) {
+                    simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
+                } else if (posx == ROOM_MAX_X_POSITION && posy > ROM_MIN_Y_POS && orientation != ENUM_ORIENTATION_SOUTH) {
+                    simulator_move(environment_st, ENUM_MOVE_TURN_RIGHT);
+                } else {
+                    simulator_move(environment_st, ENUM_MOVE_FORWARD);
+                }
+                break;
+
+            default:
+                robot_st->cleaning_mode_en = ENUM_STATE_NO_CLEANING;
+                break;
+        }
+    }
+}
+
+void update_environment_parameters(st_robot *robot_st, st_environment *environment_st) {
+    if(environment_st->move_st.valid) {
+        environment_st->move_st.valid = false;
+        switch (environment_st->move_st.move_en) {
+            case ENUM_MOVE_FORWARD:
+                switch (robot_st->orientation_en) {
+                    case ENUM_ORIENTATION_NORTH: (robot_st->position_st.y)++; break;
+                    case ENUM_ORIENTATION_EST: (robot_st->position_st.x)++; break;
+                    case ENUM_ORIENTATION_SOUTH: (robot_st->position_st.y)--; break;
+                    case ENUM_ORIENTATION_WEST: (robot_st->position_st.x)--; break;
+                }
+                break;
+
+            case ENUM_MOVE_TURN_LEFT:
+                robot_st->orientation_en = (robot_st->orientation_en == ENUM_ORIENTATION_EST) ? ENUM_ORIENTATION_NORTH : (robot_st->orientation_en + 1);
+                break;
+
+            case ENUM_MOVE_TURN_RIGHT:
+                robot_st->orientation_en = (robot_st->orientation_en == ENUM_ORIENTATION_NORTH) ? ENUM_ORIENTATION_EST : (robot_st->orientation_en - 1);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    if(environment_st->vaccuum_st.valid) {
+        environment_st->vaccuum_st.valid = false;
+        robot_st->vacuum = environment_st->vaccuum_st.state;
+    }
+
+    if(environment_st->dust_st.valid) {
+        environment_st->dust_st.valid = false;
+        robot_st->dust += environment_st->dust_st.collected_dust;
+    }
+
+    if(environment_st->obstacle_st.valid) {
+        environment_st->obstacle_st.valid = false;
+        robot_st->obstacle_ahead = environment_st->obstacle_st.obstacle;
+    }
+
+    if(environment_st->clock_st.valid) {
+        environment_st->clock_st.valid = false;
+        uint8_t hour = environment_st->clock_st.time_st.hour;
+        uint8_t minute = environment_st->clock_st.time_st.minute;
+
+        if(robot_st->time.hour == hour && robot_st->time.minute == minute) {
+            robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_NORMAL;
+        }
+    }
+}
+
+bool check_move_forward(st_robot *robot_st) {
+    uint8_t posx = robot_st->position_st.x;
+    uint8_t posy = robot_st->position_st.y;
+    st_blocked_area area0_st = robot_st->blocked_area_st[0];
+    st_blocked_area area1_st = robot_st->blocked_area_st[1];
+
+    switch (robot_st->orientation_en) {
+        case ENUM_ORIENTATION_NORTH: 
+            return !check_block_area(posx, posy - 1, area0_st) && !check_block_area(posx, posy - 1, area1_st);
+
+        case ENUM_ORIENTATION_EST: 
+            return !check_block_area(posx + 1, posy, area0_st) && !check_block_area(posx + 1, posy, area1_st);
+
+        case ENUM_ORIENTATION_SOUTH:
+            return !check_block_area(posx, posy + 1, area0_st) && !check_block_area(posx, posy + 1, area1_st);
+
+        case ENUM_ORIENTATION_WEST:
+            return !check_block_area(posx - 1, posy, area0_st) && !check_block_area(posx - 1, posy, area1_st);
+    }
+    return false;
+}
+
+bool check_block_area(uint8_t x, uint8_t y, st_blocked_area area) {
+    if (area.length == 0 || area.height == 0) {
+        return false;
+    }
+
+    return (x >= area.position_st.x && x < area.position_st.x + area.length &&
+            y >= area.position_st.y && y < area.position_st.y + area.height);
 }
 
 /**
@@ -580,6 +777,24 @@ char identify_button(uint8_t bt_index) {
     }
 
     return bt;
+}
+
+void recalculate_battery(st_robot *robot_st) {
+    uint16_t battery_consumption = ROBOT_BATTERY_CONSUMPTION_STD_MA_S;
+    uint32_t time = millis();
+    static uint32_t timer = 0;
+
+    uint8_t passed_seconds = (time - timer) / CONVERT_MS_TO_S;
+
+    if(robot_st->vacuum) {
+        battery_consumption += ROBOT_BATTERY_CONSUMPTION_VACUUM_MA_S;
+    }
+
+    if(robot_st->mop) {
+        battery_consumption += ROBOT_BATTERY_CONSUMPTION_MOP_MA_S;
+    }
+
+    robot_st->battery -= passed_seconds * battery_consumption;
 }
 
 /**
