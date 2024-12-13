@@ -3,6 +3,7 @@
 
 /* Variables */
 st_robot robot_st;
+st_environment environment_st;
 
 /* Main function */
 int main(void) {
@@ -32,6 +33,6 @@ int main(void) {
 
   /* Main loop */
   while(true) {
-    robot_state_machine(&robot_st);
+    state_machine(&robot_st, &environment_st);
   }
 }

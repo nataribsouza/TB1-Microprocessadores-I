@@ -20,10 +20,13 @@ void init_robot(st_robot *robot_st) {
 
     // Set robot structure
     robot_st->vacuum = false;
-    robot_st->state_en = ENUM_STATE_INIT;
+    robot_st->state_machine_en = ENUM_STATE_INIT;
+    robot_st->orient_en = ENUM_ORIENTATION_NORTH;
     robot_st->battery = ROBOT_BATTERY_CAPACITY_MA_S;
-    robot_st->wakeup_time.hour = ROBOT_DFL_WAKEUP_TIME_H;
-    robot_st->wakeup_time.minute = ROBOT_DFL_WAKEUP_TIME_MIN;
+    robot_st->position[ROBOT_POSITION_X_INDEX] = ROBOT_INITIAL_POSITION_X;
+    robot_st->position[ROBOT_POSITION_Y_INDEX] = ROBOT_INITIAL_POSITION_Y;
+    robot_st->time.hour = ROBOT_DFL_WAKEUP_TIME_H;
+    robot_st->time.minute = ROBOT_DFL_WAKEUP_TIME_MIN;
     robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_0].valid = false;
     robot_st->blocked_area_st[ROBOT_BLOCKED_ARAE_1].valid = false;
 }
@@ -33,42 +36,42 @@ void init_robot(st_robot *robot_st) {
  * 
  * @param robot_st 
  */
-void robot_state_machine(st_robot *robot_st) {
-    switch (robot_st->state_en) {
+void state_machine(st_robot *robot_st, st_environment *environment_st) {
+    switch (robot_st->state_machine_en) {
         case ENUM_STATE_INIT:
             init_robot(robot_st);
-            robot_st->state_en = ENUM_STATE_READ_KEYBOARD;
+            robot_st->state_machine_en = ENUM_STATE_READ_KEYBOARD;
             break;
 
         case ENUM_STATE_READ_KEYBOARD:
             run_keyboard();
             handle_keyboard(robot_st);
-            robot_st->state_en = ENUM_STATE_UPDATE_DISPLAY;
+            robot_st->state_machine_en = ENUM_STATE_UPDATE_DISPLAY;
             break;
 
         case ENUM_STATE_UPDATE_DISPLAY:
             // Check if there are changes in display message
             update_display(robot_st);
-            robot_st->state_en = ENUM_STATE_BLINK_LED;
+            robot_st->state_machine_en = ENUM_STATE_BLINK_LED;
             break;
 
         case ENUM_STATE_BLINK_LED:
             // Blink if battery is bellow 10%
-            if(calculate_battery_level(robot_st->battery) < ROBOT_BATTERY_CRITICAL_PERCENTAGE) {
+            if(calculate_dust_level(robot_st->dust) >= ROBOT_DUST_MAX_PERCENTAGE) {
                 blink_led();                
             } else {
                 set_pin(ROBOT_PIN_LED, ENUM_PORT_PORTC,false);
             }
 
-            robot_st->state_en = ENUM_STATE_CHECK_SERIAL;
+            robot_st->state_machine_en = ENUM_STATE_CHECK_SERIAL;
             break;
 
         case ENUM_STATE_CHECK_SERIAL:
-            robot_st->state_en = ENUM_STATE_MOVE;
+            robot_st->state_machine_en = ENUM_STATE_MOVE;
             break;
 
         case ENUM_STATE_MOVE:
-            robot_st->state_en = ENUM_STATE_READ_KEYBOARD;
+            robot_st->state_machine_en = ENUM_STATE_READ_KEYBOARD;
             break;
         
         default:
@@ -76,6 +79,10 @@ void robot_state_machine(st_robot *robot_st) {
             reboot();
             break;
     }
+}
+
+void handle_moviment(st_robot *robot_st) {
+    
 }
 
 /**
@@ -225,8 +232,8 @@ void handle_display(st_robot *robot_st, char bt) {
                     lunit = 'h';
 
                     // Get actual automatic cleaning hour
-                    sprintf(lhour, "%02d", robot_st->wakeup_time.hour);
-                    sprintf(lminute, "%02d", robot_st->wakeup_time.minute);
+                    sprintf(lhour, "%02d", robot_st->time.hour);
+                    sprintf(lminute, "%02d", robot_st->time.minute);
 
                     // Change to Setting hour screen
                     display_st->screen_en = ENUM_SCREEN_CHNG_HOUR_USER_ADM;
@@ -409,8 +416,8 @@ void handle_display(st_robot *robot_st, char bt) {
                 uint8_t hour = atoi(lhour);
                 uint8_t minute = atoi(lminute);
                 if(hour <= MAX_HOUR && minute <= MAX_MINUTE) {
-                    robot_st->wakeup_time.hour = atoi(lhour);
-                    robot_st->wakeup_time.minute = atoi(lminute);
+                    robot_st->time.hour = atoi(lhour);
+                    robot_st->time.minute = atoi(lminute);
                 }              
 
                 // Reset local index
@@ -581,22 +588,7 @@ char identify_button(uint8_t bt_index) {
  * @param battery 
  * @return uint8_t 
  */
-uint8_t calculate_battery_level(uint16_t battery) {
-    uint8_t percent = (battery / ROBOT_BATTERY_CAPACITY_MA_S) * CONVERT_TO_PERCENTAGE;
+uint8_t calculate_dust_level(uint8_t dust) {
+    uint8_t percent = (dust / ROBOT_DUST_CAPACITY_G) * CONVERT_TO_PERCENTAGE;
     return percent;
-}
-
-/**
- * @brief Reboot the microcontroler
- * 
- */
-void reboot(void) {
-  // Disable interruptions
-  cli();
-  
-  // Set watchdog for 15 ms
-  wdt_enable(WDTO_15MS);
-  
-  // Wait untill watchdog reboot the system
-  while (1) {}
 }
