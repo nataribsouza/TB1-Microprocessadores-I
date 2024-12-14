@@ -33,6 +33,7 @@ int main(void) {
 
   /* Main loop */
   while(true) {
+    simulator_handle_receive(&environment_st);
     state_machine(&robot_st, &environment_st);
   }
 }

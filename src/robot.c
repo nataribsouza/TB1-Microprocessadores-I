@@ -23,6 +23,7 @@ void init_robot(st_robot *robot_st) {
     robot_st->vacuum = false;
     robot_st->docked = true;
     robot_st->dust = 0;
+    robot_st->obstacle = 0;
     robot_st->battery = ROBOT_BATTERY_CAPACITY_MA_S;
     robot_st->orientation_en = ENUM_ORIENTATION_NORTH;
     robot_st->position_st.x = ROBOT_INITIAL_POSITION_X;
@@ -42,6 +43,8 @@ void init_robot(st_robot *robot_st) {
  * @param robot_st 
  */
 void state_machine(st_robot *robot_st, st_environment *environment_st) {
+    update_environment_parameters(robot_st, environment_st);
+
     switch (robot_st->state_machine_en) {
         case ENUM_STATE_INIT:
             init_robot(robot_st);
@@ -51,7 +54,7 @@ void state_machine(st_robot *robot_st, st_environment *environment_st) {
 
         case ENUM_STATE_READ_KEYBOARD:
             run_keyboard();
-            handle_keyboard(robot_st);
+            handle_keyboard(robot_st, environment_st);
             robot_st->state_machine_en = ENUM_STATE_UPDATE_DISPLAY;
             break;
 
@@ -73,7 +76,7 @@ void state_machine(st_robot *robot_st, st_environment *environment_st) {
             break;
 
         case ENUM_STATE_CHECK_SERIAL:
-            simulator_handle_receive(environment_st);
+            // simulator_handle_receive(environment_st);
             robot_st->state_machine_en = ENUM_STATE_MOVE;
             break;
 
@@ -95,14 +98,14 @@ void state_machine(st_robot *robot_st, st_environment *environment_st) {
  * 
  * @param robot_st 
  */
-void handle_keyboard(st_robot *robot_st) {
+void handle_keyboard(st_robot *robot_st, st_environment *environment_st) {
     for(int i = 0; i < KEYBOARD_NUM_BUTTONS; i++) {
         if(read_keyboard(i)) {
             // Identify wich button was pressed 
             char bt = identify_button(i);
 
             // Handle display behavior
-            handle_display(robot_st, bt);
+            handle_display(robot_st, environment_st, bt);
         }
     }
 }
@@ -113,7 +116,7 @@ void handle_keyboard(st_robot *robot_st) {
  * @param robot_st 
  * @param bt 
  */
-void handle_display(st_robot *robot_st, char bt) {
+void handle_display(st_robot *robot_st, st_environment *environment_st, char bt) {
     st_display *display_st = &(robot_st->display_st);
 
     // Local variables for display management
@@ -195,6 +198,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 case '1':
                     // Call normal cleaning function
                     robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_NORMAL;
+                    simulator_vaccuum(environment_st, true);
 
                     // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
@@ -469,6 +473,7 @@ void handle_display(st_robot *robot_st, char bt) {
                 case '1':
                     // Call normal cleaning function
                     robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_NORMAL;
+                    simulator_vaccuum(environment_st, true);
 
                     // Change back to login screen
                     display_st->screen_en = ENUM_SCREEN_LOGIN;
@@ -534,8 +539,6 @@ void handle_movement(st_robot *robot_st, st_environment *environment_st) {
     uint32_t time = millis();
     static uint32_t timer = 0;
 
-    update_environment_parameters(robot_st, environment_st);
-
     if(time - timer >= ROBOT_TIME_MOVEMENT_MS) {
         timer = time;
         uint8_t posx = robot_st->position_st.x;
@@ -566,7 +569,7 @@ void handle_movement(st_robot *robot_st, st_environment *environment_st) {
                 if (robot_st->position_st.x < ROOM_MAX_X_POSITION) {                
                     if (robot_st->orientation_en != ENUM_ORIENTATION_WEST) {
                         simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
-                    } else if (robot_st->obstacle_ahead || !check_move_forward(robot_st)) {
+                    } else if (robot_st->obstacle == 1|| !check_move_forward(robot_st)) {
                         simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
                     } else {
                         simulator_move(environment_st,ENUM_MOVE_FORWARD);
@@ -575,20 +578,20 @@ void handle_movement(st_robot *robot_st, st_environment *environment_st) {
                 } else if (robot_st->position_st.y > ROM_MIN_Y_POS) {
                     if (robot_st->orientation_en != ENUM_ORIENTATION_SOUTH) {
                         simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
-                    } else if (robot_st->obstacle_ahead || !check_move_forward(robot_st)) {
+                    } else if (robot_st->obstacle == 1 || !check_move_forward(robot_st)) {
                         simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
                     } else {
                         simulator_move(environment_st, ENUM_MOVE_FORWARD);
                     }
                 } else {
                     simulator_move(environment_st, ENUM_MOVE_FORWARD);
+                    robot_st->docked = true;
                 }
                 break;
 
             case ENUM_STATE_CLEAN_NORMAL:
-
                // Estratégia simples: movimento em zig-zag
-                if (robot_st->obstacle_ahead || check_block_area(posx, posy, area0) || check_block_area(posx, posy, area1)) {
+                if (robot_st->obstacle == 1 || check_block_area(posx, posy, area0) || check_block_area(posx, posy, area1)) {
                     simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
                 } else {
                     simulator_move(environment_st, ENUM_MOVE_FORWARD);
@@ -597,7 +600,7 @@ void handle_movement(st_robot *robot_st, st_environment *environment_st) {
 
             case ENUM_STATE_CLEAN_EDGES:
                 // Limpeza apenas no perímetro da sala
-                if (robot_st->obstacle_ahead || check_block_area(posx, posy, area0) || check_block_area(posx, posy, area1)) {
+                if (robot_st->obstacle|| check_block_area(posx, posy, area0) || check_block_area(posx, posy, area1)) {
                     simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
                 } else if (posx == 0 && posy > 0 && orientation != ENUM_ORIENTATION_NORTH) {
                     simulator_move(environment_st, ENUM_MOVE_TURN_LEFT);
@@ -653,7 +656,7 @@ void update_environment_parameters(st_robot *robot_st, st_environment *environme
 
     if(environment_st->obstacle_st.valid) {
         environment_st->obstacle_st.valid = false;
-        robot_st->obstacle_ahead = environment_st->obstacle_st.obstacle;
+        robot_st->obstacle = environment_st->obstacle_st.obstacle;
     }
 
     if(environment_st->clock_st.valid) {
@@ -663,6 +666,7 @@ void update_environment_parameters(st_robot *robot_st, st_environment *environme
 
         if(robot_st->time.hour == hour && robot_st->time.minute == minute) {
             robot_st->cleaning_mode_en = ENUM_STATE_CLEAN_NORMAL;
+            simulator_vaccuum(environment_st, true);
         }
     }
 }

@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "../utils.h"
 #include "../kernel/serial.h"
+#include "../kernel/timers.h"
 
 /* Defines */
 #define ROOM_LENGTH 10
@@ -109,5 +110,11 @@ void init_environment(st_environment *environment_st);
 void simulator_handle_receive(st_environment *environment_st);
 void simulator_move(st_environment *environment_st, en_move move_en);
 void simulator_vaccuum(st_environment *environment_st, bool state);
+
+void handle_vacuum_command(st_environment *environment_st, uint8_t command);
+void handle_mop_command(st_environment *environment_st, uint8_t command);
+void handle_temperature_command(st_environment *environment_st);
+void handle_info_command(st_environment *environment_st, char *buffer_answer);
+void handle_clock_command(st_environment *environment_st, char *buffer_answer);
 
 #endif /* SIMULATOR_H */

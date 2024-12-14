@@ -88,7 +88,7 @@ typedef struct {
     bool mop;
     bool vacuum;
     bool docked;
-    uint8_t obstacle_ahead;
+    uint8_t obstacle;
 
     uint8_t dust;    
     uint16_t battery;
@@ -113,8 +113,8 @@ void handle_movement(st_robot *robot_st, st_environment *environment_st);
 bool check_move_forward(st_robot *robot_st);
 bool check_block_area(uint8_t x, uint8_t y, st_blocked_area area);
 void update_environment_parameters(st_robot *robot_st, st_environment *environment_st);
-void handle_keyboard(st_robot *robot_st);
-void handle_display(st_robot *robot_st, char bt);
+void handle_keyboard(st_robot *robot_st, st_environment *environment_st);
+void handle_display(st_robot *robot_st,  st_environment *environment_st, char bt);
 void init_robot(st_robot *robot_st);
 void robot_clean_edges(st_robot *robot_st);
 void robot_clean_room(st_robot *robot_st);

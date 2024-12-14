@@ -14,6 +14,7 @@
 
 /* Includes */
 #include "regLib.h"
+#include "timers.h"
 
 /* Defines */
 #define SERIAL_BAUDRATE 19200
